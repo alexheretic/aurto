@@ -1,10 +1,10 @@
 # aurto
 A simple Arch Linux aur tool for managing a local 'aurto' repository with [aurutils](https://github.com/AladW/aurutils).
 
-- Simple `aurto add`, `aurto remove` management of local ***aurto*** repo package.
+- Simple `aurto add`, `aurto remove` management of local ***aurto*** repo packages.
 - Automatic hourly checks & updates aur packages in the ***aurto*** repo.
 - Automatic daily checks & updates `*-git` packages in the ***aurto*** repo.
-- Uses systemd-nspawn containers to build packages.
+- Uses _makechrootpkg_ to build packages.
 
 # Install
 From a plain Arch install, first install **aurutils** from the aur (skip if already installed).
@@ -40,6 +40,11 @@ pacman -Sl aurto
 Check recent auto-update logs.
 ```sh
 journalctl -u update-aurto --since '12 hours ago' -e
+```
+
+Rebuild all orphans packages into the ***aurto*** repo
+```sh
+aurto add $(pacman -Qqm)
 ```
 
 # Limitations & Security
