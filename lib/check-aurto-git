@@ -4,19 +4,18 @@
 set -u
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-user=$(cat /usr/lib/aurto/user)
 command -v aurfetch >/dev/null 2>&1 || { echo >&2 "aurfetch not installed.  Aborting."; exit 1; }
 
 function check_auto_updates {
   for dir in *; do
     if [[ -d $dir ]] && pacman -Qq "$dir" >/dev/null 2>&1; then
-      cd "$dir" || exit 
+      cd "$dir" || exit
       echo -n "Checking $dir..." >&2
       before_ver=$(grep -m1 pkgver= PKGBUILD | sed -e 's/^[^=]*=//g')
       before_rel=$(grep -m1 pkgrel= PKGBUILD | sed -e 's/^[^=]*=//g')
       installed_ver=$(pacman -Q "$dir" | sed -e 's/^[^ ]* //g')
 
-      arch-nspawn /var/lib/aurbuild/x86_64/"$user" \
+      arch-nspawn /var/lib/aurto-builder \
         --bind="$SCRIPT_DIR"/tmp/"$dir" \
         -u builduser \
         /usr/bin/env bash -c "

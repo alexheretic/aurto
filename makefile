@@ -6,7 +6,7 @@ all:
 	@rm -rf target
 
 	@mkdir -p target/etc/pacman.d
-	@cp conf/aurto.pacman.conf target/etc/pacman.d/
+	@cp conf/aurto.pacman.conf target/etc/pacman.d/aurto
 
 	@mkdir -p target$(PREFIX)/bin
 	@cp -r bin/* target$(PREFIX)/bin/
