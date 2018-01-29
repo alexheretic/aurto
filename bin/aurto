@@ -6,8 +6,8 @@ command=${1:-}
 arg1=${2:-}
 
 if [ "$command" == "add" ] && [ -n "$arg1" ]; then
-  echo "aurto: Running: \`aursync --no-view --rmdeps --no-confirm -C /var/lib/aurto-builder --repo=aurto ${*:2}\`" >&2
-  aursync --no-view --rmdeps --no-confirm -C /var/lib/aurto-builder --repo=aurto "${@:2}"
+  echo "aurto: Running: \`aursync --no-view --rmdeps --no-confirm --chroot --repo=aurto ${*:2}\`" >&2
+  aursync --no-view --rmdeps --no-confirm --chroot --repo=aurto "${@:2}"
 elif [ "$command" == "remove" ] && [ -n "$arg1" ]; then
   removed=""
   for pkg in "${@:2}"; do

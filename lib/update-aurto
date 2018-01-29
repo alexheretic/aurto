@@ -13,8 +13,7 @@ fi
 
 pacman -Sy >/dev/null 2>&1
 
-sudo -u "$user" aursync --no-view --rmdeps --no-confirm --repo aurto \
-  -C /var/lib/aurto-builder --update
+sudo -u "$user" aursync --no-view --rmdeps --no-confirm --repo aurto --chroot --update
 
 if [ -e /usr/lib/aurto/check-vcs ]; then
   rm -f /usr/lib/aurto/check-vcs || true
