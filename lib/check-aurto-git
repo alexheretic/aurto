@@ -1,0 +1,64 @@
+#!/usr/bin/env bash
+## Checks aur-git for updates
+
+set -u
+
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+user=$(cat /usr/lib/aurto/user)
+command -v aurfetch >/dev/null 2>&1 || { echo >&2 "aurfetch not installed.  Aborting."; exit 1; }
+
+function check_auto_updates {
+  for dir in *; do
+    if [[ -d $dir ]] && pacman -Qq "$dir" >/dev/null 2>&1; then
+      cd "$dir" || exit 
+      echo -n "Checking $dir..." >&2
+      before_ver=$(grep -m1 pkgver= PKGBUILD | sed -e 's/^[^=]*=//g')
+      before_rel=$(grep -m1 pkgrel= PKGBUILD | sed -e 's/^[^=]*=//g')
+      installed_ver=$(pacman -Q "$dir" | sed -e 's/^[^ ]* //g')
+
+      arch-nspawn /var/lib/aurbuild/x86_64/"$user" \
+        --bind="$SCRIPT_DIR"/tmp/"$dir" \
+        -u builduser \
+        /usr/bin/env bash -c "
+          cd $SCRIPT_DIR/tmp/$dir
+          makepkg -sco --noprepare --noconfirm >/dev/null 2>&1
+        "
+      if [ $? -ne 0 ]; then
+        echo -e " \\e[31mfailed\\e[39m" >&2
+        cd ..
+        rm -rf "$dir"
+        continue
+      fi
+
+      after_ver=$(grep -m1 pkgver= PKGBUILD | sed -e 's/^[^=]*=//g')
+      after_rel=$(grep -m1 pkgrel= PKGBUILD | sed -e 's/^[^=]*=//g')
+      cd ..
+      if [ "$before_ver-$before_rel" = "$after_ver-$after_rel" ] || \
+         [ "$installed_ver" = "$after_ver-$after_rel" ]; then
+        echo -e " \\e[32m✓ up to date\\e[39m" >&2
+      else
+        echo -e " \\e[34m$installed_ver -> $after_ver-$after_rel available\\e[39m" >&2
+        echo "$dir"
+      fi
+    fi
+    rm -rf "$dir"
+  done
+}
+
+# rm the temporary build files
+function rm_tmp {
+  rm -rf "$SCRIPT_DIR"/tmp || true
+}
+trap rm_tmp EXIT
+
+mkdir -p "$SCRIPT_DIR"/tmp
+cd "$SCRIPT_DIR"/tmp || exit 1
+
+# All *-git packages
+CHECK_FOR_AUTO_UPDATES="$(pacman -Slq aurto | grep '\-git$')"
+
+if [ ! -z "$CHECK_FOR_AUTO_UPDATES" ]; then
+  echo "$CHECK_FOR_AUTO_UPDATES" | aurfetch >/dev/null 2>&1
+  chmod -R 0777 "$SCRIPT_DIR"/tmp
+  check_auto_updates
+fi

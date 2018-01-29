@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+## Builds new aur packages into repo 'aurto'
+## Should be in the same dir as `check-aurto-git`
+set -eu
+
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+user=$(cat /usr/lib/aurto/user)
+
+if [ -z "$user" ]; then
+  echo 'Missing /usr/lib/aurto/user' >&2
+  exit 1
+fi
+
+pacman -Sy >/dev/null 2>&1
+
+sudo -u "$user" aursync --no-view --rmdeps --no-confirm --chroot \
+  --repo aurto --update
+
+if [ -e /usr/lib/aurto/check-vcs ]; then
+  rm -f /usr/lib/aurto/check-vcs || true
+
+  GIT_OUTDATED=$("$SCRIPT_DIR"/check-aurto-git)
+  if [ -n "$GIT_OUTDATED" ]; then
+    sudo -u "$user" aurto add "$GIT_OUTDATED"
+  fi
+fi
+
+/usr/bin/paccache -rk1 -c /var/cache/pacman/aurto

@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+
+set -eu
+command=${1:-}
+arg1=${2:-}
+
+if [ "$command" == "add" ] && [ -n "$arg1" ]; then
+  echo "aurto: Running: \`aursync --no-view --rmdeps --no-confirm --chroot --repo=aurto ${*:2}\`" >&2
+  # TODO use -M /usr/liv/aurto/aurto-makepkg.conf
+  aursync --no-view --rmdeps --no-confirm --chroot --repo=aurto "${@:2}"
+elif [ "$command" == "remove" ] && [ -n "$arg1" ]; then
+  removed=""
+  for pkg in "${@:2}"; do
+    remove_out=$(repo-remove /var/cache/pacman/aurto/aurto.db.tar "$pkg" 2>&1)
+    if [[ $remove_out = *"ERROR"* ]]; then
+      echo -e "aurto: \\e[36m$pkg \\e[31mnot found\\e[39m" >&2
+    else
+      rm -rf /var/cache/pacman/aurto/"$pkg"*.pkg.* || true
+      removed="$pkg $removed"
+    fi
+  done
+  if [ -n "$removed" ]; then
+    echo -e "aurto: Removed \\e[36m$removed\\e[39m" >&2
+  fi
+else
+  echo -e "Simple management tool for the 'aurto' repository"
+  echo -e "  Usage: \\e[32maurto add\\e[39m|\\e[32mremove \\e[36mPACKAGES\\e[39m"
+  exit 1
+fi

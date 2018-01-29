@@ -1,0 +1,9 @@
+[Unit]
+Description=Lazily sets to check for aurto git updates every day
+
+[Timer]
+OnCalendar=*-*-* 08:29:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target

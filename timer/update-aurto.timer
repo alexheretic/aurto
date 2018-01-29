@@ -1,0 +1,8 @@
+[Unit]
+Description=Updates 'aurto' repo every hour
+
+[Timer]
+OnCalendar=*-*-* *:30:00
+
+[Install]
+WantedBy=timers.target
