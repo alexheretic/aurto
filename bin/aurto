@@ -5,10 +5,17 @@ version="0.3"
 command=${1:-}
 arg1=${2:-}
 
-function bold { echo -e "\\e[1m$*\\e[21m"; }
-function green { echo -e "\\e[32m$*\\e[39m"; }
-function cyan { echo -e "\\e[36m$*\\e[39m"; }
-function red { echo -e "\\e[31m$*\\e[39m"; }
+if test -t 1; then
+  function bold { echo -e "\\e[1m$*\\e[21m"; }
+  function green { echo -e "\\e[32m$*\\e[39m"; }
+  function cyan { echo -e "\\e[36m$*\\e[39m"; }
+  function red { echo -e "\\e[31m$*\\e[39m"; }
+else
+  function bold { echo -e "$*"; }
+  function green { bold "$@"; }
+  function cyan { bold "$@"; }
+  function red { bold "$@"; }
+fi
 
 if [ "$command" == "add" ] && [ -n "$arg1" ]; then
   sudo pacsync aurto >/dev/null
@@ -38,7 +45,17 @@ elif [ "$command" == "remove" ] && [ -n "$arg1" ]; then
     sudo pacsync aurto >/dev/null
   fi
 else
-  echo -e "$(bold aurto) v$version: simple management tool for the 'aurto' repository"
-  echo -e "  Usage: $(green aurto add)|$(green addpkg)|$(green remove) $(cyan PACKAGES...)"
+  echo "$(bold aurto) v$version: simple management tool for the 'aurto' repository"
+  echo "  Usage: $(green aurto add)|$(green addpkg)|$(green remove) $(cyan PACKAGES...)"
+  echo
+  echo "  Examples"
+  echo "  - add: build, or rebuild if newer than existing, one or more aur packages & add to the 'aurto' repo"
+  echo "      $(green aurto add) $(cyan aurutils)"
+  echo
+  echo "  - remove: remove a package from the 'aurto' repo (does not uninstall)"
+  echo "      $(green aurto remove) $(cyan aurutils)"
+  echo
+  echo "  - addpkg: add a prebuilt package to the 'aurto' repo"
+  echo "      $(green aurto addpkg) $(cyan aurutils-1.5.3-8-any.pkg.tar.xz)"
   exit 1
 fi
