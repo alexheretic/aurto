@@ -15,7 +15,7 @@ gpg --recv-keys DBE7D3DD8C81D58D0A13D0E76BC26A17B9B7018A
 makepkg -srci
 ```
 
-Install **aurto** from the aur.
+Install **aurto** from [the aur](https://aur.archlinux.org/packages/aurto).
 ```sh
 curl -L https://aur.archlinux.org/cgit/aur.git/snapshot/aurto.tar.gz | tar xz
 cd aurto
