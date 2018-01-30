@@ -32,7 +32,7 @@ The packages are automatically updated periodically,
 you'll see ***aurto*** updates in the same way as other repos after a `pacman -Syu`.
 
 # Useful commands
-View the contents of the ***aurto*** repo, _you may want to `pacman -Sy` first if recently changed_.
+View the contents of the ***aurto*** repo.
 ```sh
 pacman -Sl aurto
 ```

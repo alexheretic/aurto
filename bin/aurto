@@ -6,8 +6,10 @@ command=${1:-}
 arg1=${2:-}
 
 if [ "$command" == "add" ] && [ -n "$arg1" ]; then
+  sudo pacsync aurto >/dev/null
   echo "aurto: Running: \`aursync --no-view --rmdeps --no-confirm --chroot --repo=aurto ${*:2}\`" >&2
   aursync --no-view --rmdeps --no-confirm --chroot --repo=aurto "${@:2}"
+  sudo pacsync aurto >/dev/null
 elif [ "$command" == "remove" ] && [ -n "$arg1" ]; then
   removed=""
   for pkg in "${@:2}"; do
@@ -21,6 +23,7 @@ elif [ "$command" == "remove" ] && [ -n "$arg1" ]; then
   done
   if [ -n "$removed" ]; then
     echo -e "aurto: Removed \\e[36m$removed\\e[39m" >&2
+    sudo pacsync aurto >/dev/null
   fi
 else
   echo -e "\\e[1maurto \\e[21mv$version: simple management tool for the 'aurto' repository"

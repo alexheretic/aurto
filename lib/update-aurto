@@ -11,7 +11,7 @@ if [ -z "$user" ]; then
   exit 1
 fi
 
-pacman -Sy >/dev/null 2>&1
+pacsync aurto
 
 sudo -u "$user" aursync --no-view --rmdeps --no-confirm --repo aurto --chroot --update
 
@@ -24,4 +24,5 @@ if [ -e /usr/lib/aurto/check-vcs ]; then
   fi
 fi
 
-/usr/bin/paccache -rk1 -c /var/cache/pacman/aurto
+pacsync aurto
+paccache -rk1 -c /var/cache/pacman/aurto
