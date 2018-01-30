@@ -1,32 +1,44 @@
 #!/usr/bin/env bash
 
 set -eu
-version="0.2"
+version="0.3"
 command=${1:-}
 arg1=${2:-}
+
+function bold { echo -e "\\e[1m$*\\e[21m"; }
+function green { echo -e "\\e[32m$*\\e[39m"; }
+function cyan { echo -e "\\e[36m$*\\e[39m"; }
+function red { echo -e "\\e[31m$*\\e[39m"; }
 
 if [ "$command" == "add" ] && [ -n "$arg1" ]; then
   sudo pacsync aurto >/dev/null
   echo "aurto: Running: \`aursync --no-view --rmdeps --no-confirm --chroot --repo=aurto ${*:2}\`" >&2
   aursync --no-view --rmdeps --no-confirm --chroot --repo=aurto "${@:2}"
   sudo pacsync aurto >/dev/null
+elif [ "$command" == "addpkg" ] && [ -n "$arg1" ]; then
+  echo "aurto: Running: \`repo-add /var/cache/pacman/aurto/aurto.db.tar ${*:2}\`" >&2
+  repo-add /var/cache/pacman/aurto/aurto.db.tar "${@:2}"
+  for pkg in "${@:2}"; do
+    cp "$pkg" /var/cache/pacman/aurto/
+  done
+  sudo pacsync aurto >/dev/null
 elif [ "$command" == "remove" ] && [ -n "$arg1" ]; then
   removed=""
   for pkg in "${@:2}"; do
     remove_out=$(repo-remove /var/cache/pacman/aurto/aurto.db.tar "$pkg" 2>&1)
     if [[ $remove_out = *"ERROR"* ]]; then
-      echo -e "aurto: \\e[36m$pkg \\e[31mnot found\\e[39m" >&2
+      echo "aurto: $(cyan "$pkg") $(red not found)" >&2
     else
       rm -rf /var/cache/pacman/aurto/"$pkg"*.pkg.* || true
       removed="$pkg $removed"
     fi
   done
   if [ -n "$removed" ]; then
-    echo -e "aurto: Removed \\e[36m$removed\\e[39m" >&2
+    echo -e "aurto: Removed $(cyan "$removed")" >&2
     sudo pacsync aurto >/dev/null
   fi
 else
-  echo -e "\\e[1maurto \\e[21mv$version: simple management tool for the 'aurto' repository"
-  echo -e "  Usage: \\e[32maurto add\\e[39m|\\e[32mremove \\e[36mPACKAGES...\\e[39m"
+  echo -e "$(bold aurto) v$version: simple management tool for the 'aurto' repository"
+  echo -e "  Usage: $(green aurto add)|$(green addpkg)|$(green remove) $(cyan PACKAGES...)"
   exit 1
 fi

@@ -3,7 +3,7 @@ A simple Arch Linux aur tool for managing a local 'aurto' repository with [aurut
 
 ![](http://image.ibb.co/kmmhPR/v.gif "Usage")
 
-- Simple `aurto add`, `aurto remove` management of local ***aurto*** repo packages.
+- Simple `aurto add`, `aurto remove`, `aurto addpkg` management of local ***aurto*** repo packages.
 - Automatic hourly checks & updates aur packages in the ***aurto*** repo.
 - Automatic daily checks & updates `*-git` packages in the ***aurto*** repo.
 - Uses _makechrootpkg_ to build packages.
@@ -27,7 +27,7 @@ makepkg -srci
 # Usage
 You add aur packages to your local 'aurto' repo. This is different to installing them.
 ```sh
-aurto add|remove PACKAGES
+aurto add|addpkg|remove PACKAGES
 ```
 Once added you can install them as normal with pacman.
 The packages are automatically updated periodically,
@@ -42,6 +42,11 @@ pacman -Sl aurto
 Check recent auto-update logs.
 ```sh
 journalctl -u update-aurto --since '12 hours ago' -e
+```
+
+Add a directory full of built packages to the ***aurto*** repo
+```sh
+aurto addpkg $(find /path/to/packages/*pkg.tar*)
 ```
 
 Rebuild all orphans packages into the ***aurto*** repo
