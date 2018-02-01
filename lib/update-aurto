@@ -15,9 +15,7 @@ pacsync aurto
 
 sudo -u "$user" aursync --no-view --rmdeps --no-confirm --repo aurto --chroot --update
 
-if [ -e /usr/lib/aurto/check-vcs ]; then
-  rm -f /usr/lib/aurto/check-vcs || true
-
+if rm /usr/lib/aurto/check-vcs 2>/dev/null; then
   GIT_OUTDATED=$("$SCRIPT_DIR"/check-aurto-git)
   if [ -n "$GIT_OUTDATED" ]; then
     sudo -u "$user" aurto add "$GIT_OUTDATED"
