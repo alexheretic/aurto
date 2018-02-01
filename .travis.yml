@@ -1,0 +1,11 @@
+sudo: false
+language: bash
+
+addons:
+  apt:
+    sources:
+    - debian-sid
+    packages:
+    - shellcheck
+
+script: shellcheck $(grep -rl '^#!.*[ /]bash$' .)

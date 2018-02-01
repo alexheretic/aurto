@@ -17,14 +17,14 @@ function check_auto_updates {
       installed_ver=$(pacman -Q "$dir" | sed -e 's/^[^ ]* //g')
 
       # TODO this is pretty fragile relying on aurutils internals
-      arch-nspawn /var/lib/aurbuild/"$(uname -m)/$user" \
-        --bind="$SCRIPT_DIR"/tmp/"$dir" \
-        -u builduser \
-        /usr/bin/env bash -c "
-          cd $SCRIPT_DIR/tmp/$dir
-          makepkg -sco --noprepare --noconfirm >/dev/null 2>&1
-        "
-      if [ $? -ne 0 ]; then
+      if ! arch-nspawn /var/lib/aurbuild/"$(uname -m)/$user" \
+            --bind="$SCRIPT_DIR"/tmp/"$dir" \
+            -u builduser \
+            /usr/bin/env bash -c "
+              cd $SCRIPT_DIR/tmp/$dir
+              makepkg -sco --noprepare --noconfirm >/dev/null 2>&1
+            "
+      then
         echo -e " \\e[31mfailed\\e[39m" >&2
         cd ..
         rm -rf "$dir"
