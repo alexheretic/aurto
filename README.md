@@ -41,7 +41,7 @@ pacman -Sl aurto
 
 Check recent auto-update logs.
 ```sh
-journalctl -u update-aurto --since '12 hours ago' -e
+journalctl -eu update-aurto
 ```
 
 Add a directory full of built packages to the ***aurto*** repo
