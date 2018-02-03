@@ -1,5 +1,5 @@
 # aurto
-A simple Arch Linux aur tool for managing a local 'aurto' repository with [aurutils](https://github.com/AladW/aurutils).
+A simple Arch Linux aur tool for managing a local 'aurto' package repository with [aurutils](https://github.com/AladW/aurutils).
 
 ![](http://image.ibb.co/kmmhPR/v.gif "Usage v0.2")
 
