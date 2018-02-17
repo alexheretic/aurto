@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+if test -t 1; then
+  function bold { echo -e "\\e[1m$*\\e[21m"; }
+  function green { echo -e "\\e[32m$*\\e[39m"; }
+  function cyan { echo -e "\\e[36m$*\\e[39m"; }
+  function red { echo -e "\\e[31m$*\\e[39m"; }
+  function rm_last_print {
+    printf "\\033[1A"  # move cursor one line up
+    printf "\\033[K"  # delete till end of line
+  }
+else
+  function bold { echo -e "$*"; }
+  function green { bold "$@"; }
+  function cyan { bold "$@"; }
+  function red { bold "$@"; }
+  function rm_last_print { return; }
+fi

@@ -8,7 +8,7 @@ all:
 	@chmod 750 target/etc/sudoers.d
 
 	@install -D bin/* -t target$(PREFIX)/bin
-	@install -D lib/* -t target$(PREFIX)/lib/aurto
+	@install -D lib/aurto/* -t target$(PREFIX)/lib/aurto
 	@install -D timer/* -t target$(PREFIX)/lib/systemd/system
 
 	@if command -v tree >/dev/null 2>&1; then tree target; fi

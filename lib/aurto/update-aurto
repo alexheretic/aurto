@@ -3,7 +3,7 @@
 ## Should be in the same dir as `check-aurto-git`
 set -eu
 
-script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+lib_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 user=$(cat /usr/lib/aurto/user)
 
 if [ -z "$user" ]; then
@@ -11,12 +11,15 @@ if [ -z "$user" ]; then
   exit 1
 fi
 
-pacsync aurto
+pacsync aurto >/dev/null
 
-sudo -u "$user" aursync --no-view --rmdeps --no-confirm --repo aurto --chroot --update
+echo "Running: \`aursync --no-view --rmdeps --no-confirm --repo aurto --chroot --update\`" >&2
+sudo -u "$user" \
+ "$lib_dir"/summerize-build \
+ aursync --no-view --rmdeps --no-confirm --repo aurto --chroot --update
 
-if rm "$script_dir/check-vcs" 2>/dev/null; then
-  git_outdated=$("$script_dir/check-aurto-git")
+if rm "$lib_dir/check-vcs" 2>/dev/null; then
+  git_outdated=$("$lib_dir/check-aurto-git")
   if [ -n "$git_outdated" ]; then
     sudo -u "$user" aurto add "$git_outdated"
   fi
