@@ -34,8 +34,9 @@ echo
     fi
   done
 
-if [[ ${PIPESTATUS[0]} -ne 0 ]]; then
+exit_code=${PIPESTATUS[0]}
+if [[ $exit_code -ne 0 ]]; then
   cat "$full_output_file" >&2
-  echo "\`${*:1}\` failed with exit code ${PIPESTATUS[0]} $(red ✗)" >&2
-  exit "${PIPESTATUS[0]}"
+  echo "\`${*:1}\` failed with exit code $exit_code $(red ✗)" >&2
+  exit "$exit_code"
 fi
