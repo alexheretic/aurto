@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-## Builds new aur packages into repo 'aurto'
+## Builds new aur packages into repo 'aurto' (run as root)
 ## Should be in the same dir as `check-aurto-git`
 set -eu
 
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 user=$(cat /usr/lib/aurto/user)
 
 if [ -z "$user" ]; then
@@ -15,10 +15,10 @@ pacsync aurto
 
 sudo -u "$user" aursync --no-view --rmdeps --no-confirm --repo aurto --chroot --update
 
-if rm /usr/lib/aurto/check-vcs 2>/dev/null; then
-  GIT_OUTDATED=$("$SCRIPT_DIR"/check-aurto-git)
-  if [ -n "$GIT_OUTDATED" ]; then
-    sudo -u "$user" aurto add "$GIT_OUTDATED"
+if rm "$script_dir/check-vcs" 2>/dev/null; then
+  git_outdated=$("$script_dir/check-aurto-git")
+  if [ -n "$git_outdated" ]; then
+    sudo -u "$user" aurto add "$git_outdated"
   fi
 fi
 

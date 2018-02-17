@@ -1,11 +1,10 @@
 #!/usr/bin/env bash
-## Checks aur-git for updates
-
+## Checks aur-git for updates (run as root)
 set -u
 
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 user=$(cat /usr/lib/aurto/user)
-command -v aurfetch >/dev/null 2>&1 || { echo >&2 "aurfetch not installed.  Aborting."; exit 1; }
+command -v aurfetch >/dev/null 2>&1 || { echo >&2 "aurfetch not installed. Aborting."; exit 1; }
 
 function check_auto_updates {
   for dir in *; do
@@ -18,10 +17,10 @@ function check_auto_updates {
 
       # TODO this is pretty fragile relying on aurutils internals
       if ! arch-nspawn /var/lib/aurbuild/"$(uname -m)/$user" \
-            --bind="$SCRIPT_DIR"/tmp/"$dir" \
+            --bind="$script_dir"/tmp/"$dir" \
             -u builduser \
             /usr/bin/env bash -c "
-              cd $SCRIPT_DIR/tmp/$dir
+              cd $script_dir/tmp/$dir
               makepkg -sco --noprepare --noconfirm >/dev/null 2>&1
             "
       then
@@ -48,18 +47,18 @@ function check_auto_updates {
 
 # rm the temporary build files
 function rm_tmp {
-  rm -rf "$SCRIPT_DIR"/tmp || true
+  rm -rf "$script_dir"/tmp || true
 }
 trap rm_tmp EXIT
 
-mkdir -p "$SCRIPT_DIR"/tmp
-cd "$SCRIPT_DIR"/tmp || exit 1
+mkdir -p "$script_dir"/tmp
+cd "$script_dir"/tmp || exit 1
 
 # All *-git packages
-CHECK_FOR_AUTO_UPDATES="$(pacman -Slq aurto | grep '\-git$')"
+check_for_auto_updates="$(pacman -Slq aurto | grep '\-git$')"
 
-if [ ! -z "$CHECK_FOR_AUTO_UPDATES" ]; then
-  echo "$CHECK_FOR_AUTO_UPDATES" | aurfetch >/dev/null 2>&1
-  chmod -R 0777 "$SCRIPT_DIR"/tmp
+if [ ! -z "$check_for_auto_updates" ]; then
+  echo "$check_for_auto_updates" | aurfetch >/dev/null 2>&1
+  chmod -R 0777 "$script_dir"/tmp
   check_auto_updates
 fi
