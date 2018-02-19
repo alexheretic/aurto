@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+set -eu
+script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+cd "$script_dir"/..
+tar zcf aurto-git.tar.gz "$script_dir"
+mv aurto-git.tar.gz "$script_dir"/aur
+cd "$script_dir"/aur
+
+trap 'rm -f aurto-git.tar.gz && mv PKGBUILD.original PKGBUILD' EXIT
+mv PKGBUILD PKGBUILD.original
+cp ../makelocalaur.PKGBUILD PKGBUILD
+
+updpkgsums
+makepkg "$@"
+
+mv aurto-0.0.local* ../
