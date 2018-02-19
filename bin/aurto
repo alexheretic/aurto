@@ -12,8 +12,8 @@ source "$lib_dir/shared-functions"
 
 if [ "$command" == "add" ] && [ -n "$arg1" ]; then
   sudo pacsync aurto >/dev/null
-  echo "aurto: Running: \`aursync --no-view --rmdeps --no-confirm --chroot --repo=aurto ${*:2}\`" >&2
-  "$lib_dir"/summerize-build aursync --no-view --rmdeps --no-confirm --chroot --repo=aurto "${@:2}"
+  echo "aurto: Running: \`aursync --no-view --no-confirm --chroot --repo=aurto ${*:2}\`" >&2
+  "$lib_dir"/summerize-build aursync --no-view --no-confirm --chroot --repo=aurto "${@:2}"
   sudo pacsync aurto >/dev/null
 elif [ "$command" == "addpkg" ] && [ -n "$arg1" ]; then
   echo "aurto: Running: \`repo-add /var/cache/pacman/aurto/aurto.db.tar ${*:2}\`" >&2

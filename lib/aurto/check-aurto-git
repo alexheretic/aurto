@@ -16,15 +16,17 @@ function check_auto_updates {
       installed_ver=$(pacman -Q "$dir" | sed -e 's/^[^ ]* //g')
 
       # TODO this is pretty fragile relying on aurutils internals
-      if ! arch-nspawn /var/lib/aurbuild/"$(uname -m)/$user" \
-            --bind="$lib_dir"/tmp/"$dir" \
-            -u builduser \
-            /usr/bin/env bash -c "
-              cd $lib_dir/tmp/$dir
-              makepkg -sco --noprepare --noconfirm >/dev/null 2>&1
-            "
+      if ! makepkg_output=$(arch-nspawn /var/lib/aurbuild/"$(uname -m)/$user" \
+        --bind="$lib_dir"/tmp/"$dir" \
+        -u builduser \
+        /usr/bin/env bash -c "
+          cd $lib_dir/tmp/$dir
+          makepkg -sco --noprepare --noconfirm 2>&1
+        ")
       then
         echo -e " \\e[31mfailed\\e[39m" >&2
+        echo "---makepkg output---"
+        echo "$makepkg_output" >&2
         cd ..
         rm -rf "$dir"
         continue
@@ -43,6 +45,10 @@ function check_auto_updates {
     fi
     rm -rf "$dir"
   done
+
+  if test -d /var/lib/aurbuild/"$(uname -m)/$user"/build; then
+    rm -rf /var/lib/aurbuild/"$(uname -m)/$user"/build/*
+  fi
 }
 
 # rm the temporary build files
