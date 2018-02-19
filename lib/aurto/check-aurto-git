@@ -6,7 +6,15 @@ lib_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 user=$(cat /usr/lib/aurto/user)
 command -v aurfetch >/dev/null 2>&1 || { echo >&2 "aurfetch not installed. Aborting."; exit 1; }
 
+function clean_aurbuild_build {
+  if test -d /var/lib/aurbuild/"$(uname -m)/$user"/build; then
+    rm -rf /var/lib/aurbuild/"$(uname -m)/$user"/build/*
+  fi
+}
+
 function check_auto_updates {
+  clean_aurbuild_build
+
   for dir in *; do
     if [[ -d $dir ]] && pacman -Qq "$dir" >/dev/null 2>&1; then
       cd "$dir" || exit
@@ -46,9 +54,7 @@ function check_auto_updates {
     rm -rf "$dir"
   done
 
-  if test -d /var/lib/aurbuild/"$(uname -m)/$user"/build; then
-    rm -rf /var/lib/aurbuild/"$(uname -m)/$user"/build/*
-  fi
+  clean_aurbuild_build
 }
 
 # rm the temporary build files
