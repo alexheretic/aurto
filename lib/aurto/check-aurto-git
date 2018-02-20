@@ -33,7 +33,7 @@ function check_auto_updates {
         ")
       then
         echo -e " \\e[31mfailed\\e[39m" >&2
-        echo "---makepkg output---"
+        echo "---makepkg output---" >&2
         echo "$makepkg_output" >&2
         cd ..
         rm -rf "$dir"
