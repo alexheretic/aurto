@@ -1,7 +1,7 @@
 # aurto
 A simple Arch Linux aur tool for managing a local 'aurto' package repository with [aurutils](https://github.com/AladW/aurutils).
 
-![](http://image.ibb.co/kmmhPR/v.gif "Usage v0.2")
+![](https://image.ibb.co/imkghn/output_4.gif "Usage v0.6")
 
 - Simple `aurto add`, `aurto remove`, `aurto addpkg` management of local ***aurto*** repo packages.
 - Automatic hourly checks & updates aur packages in the ***aurto*** repo.
