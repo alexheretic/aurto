@@ -56,7 +56,7 @@ aurto add $(pacman -Qqm)
 
 # Limitations & Security
 aurto automatically builds and regularly re-builds updated remote code from the aur.
-Code is _built_ in a container, but presumably will eventually be installed to your system.
+Code is _built_ in a clean chroot, but presumably will eventually be installed to your system.
 Only add aur packages from maintainers you trust.
 
 aurto is for simple folk's simple needs. If it can't do what you want uninstall & use [aurutils](https://github.com/AladW/aurutils) directly.
