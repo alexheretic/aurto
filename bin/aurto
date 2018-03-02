@@ -14,12 +14,12 @@ function aurto_sync { sudo pacsync aurto >/dev/null; }
 
 if [ "$command" == "add" ] && [ -n "$arg1" ]; then
   aurto_sync
-  echo "aurto: Running: \`aursync --no-view --no-confirm --chroot --repo=aurto $(cyan "${*:2}")\`" >&2
+  echo "aurto: Running: $(dim aursync --no-view --no-confirm --chroot --repo=aurto) $(cyan "${*:2}")" >&2
   "$lib_dir"/summerize-build aursync --no-view --no-confirm --chroot --repo=aurto "${@:2}"
   aurto_sync
-  echo -e "aurto: To install run: $(green pacman -Syu "${*:2}")" >&2
+  echo -e "aurto: To install run: $(green pacman -Syu) $(cyan "${*:2}")" >&2
 elif [ "$command" == "addpkg" ] && [ -n "$arg1" ]; then
-  echo "aurto: Running: \`repo-add /var/cache/pacman/aurto/aurto.db.tar ${*:2}\`" >&2
+  echo "aurto: Running: $(dim repo-add /var/cache/pacman/aurto/aurto.db.tar) $(cyan "${*:2}")" >&2
   repo-add /var/cache/pacman/aurto/aurto.db.tar "${@:2}"
   for pkg in "${@:2}"; do
     cp "$pkg" /var/cache/pacman/aurto/
