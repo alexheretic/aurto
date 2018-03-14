@@ -11,7 +11,7 @@ if [ -z "$user" ]; then
   exit 1
 fi
 
-pacsync aurto >/dev/null
+pacsync aurto >/dev/null || true
 
 echo "Running: aursync --no-view --no-confirm --repo aurto --chroot --update" >&2
 sudo -u "$user" \
@@ -25,5 +25,5 @@ if rm "$lib_dir/check-vcs" 2>/dev/null; then
   fi
 fi
 
-pacsync aurto
+pacsync aurto || true
 paccache -rk1 -c /var/cache/pacman/aurto
