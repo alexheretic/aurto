@@ -2,5 +2,4 @@
 Description=Updates 'aurto' repo
 
 [Service]
-Type=oneshot
 ExecStart=/usr/lib/aurto/update-aurto
