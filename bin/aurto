@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 set -eu
-version="0.6.0"
+version="0.6.1"
 command=${1:-}
 arg1=${2:-}
 
