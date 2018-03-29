@@ -14,4 +14,4 @@ cp ../makelocalaur.PKGBUILD PKGBUILD
 updpkgsums
 makepkg "$@"
 
-mv aurto-0.0.local* ../
+mv aurto-99.0.local* ../
