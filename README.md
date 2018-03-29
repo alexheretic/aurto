@@ -22,6 +22,12 @@ Install **aurto** from [the aur](https://aur.archlinux.org/packages/aurto).
 curl -L https://aur.archlinux.org/cgit/aur.git/snapshot/aurto.tar.gz | tar xz
 cd aurto
 makepkg -srci
+
+```
+
+Optional: Add the **aurto** itself to the 'aurto' repo using the package you just built.
+```sh
+aurto addpkg aurto*pkg.tar*
 ```
 
 # Usage
