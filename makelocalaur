@@ -9,9 +9,10 @@ cd "$script_dir"/aur
 
 trap 'rm -f aurto-git.tar.gz && mv PKGBUILD.original PKGBUILD' EXIT
 mv PKGBUILD PKGBUILD.original
-cp ../makelocalaur.PKGBUILD PKGBUILD
+current_v=$(grep '^pkgver=' PKGBUILD.original | cut -d'=' -f2 | tr -d '\n')
+sed "s/###VERSION/$current_v/" ../makelocalaur.PKGBUILD > PKGBUILD
 
 updpkgsums
 makepkg "$@"
 
-mv aurto-99.0.local* ../
+mv aurto-*-999* ../
