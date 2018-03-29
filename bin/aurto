@@ -1,9 +1,16 @@
 #!/usr/bin/env bash
+## aurto commands, see bottom help output
 
 set -eu
 version="0.6.3"
 command=${1:-}
 arg1=${2:-}
+
+if [[ $EUID -eq 0 ]]; then
+  # shouldn't be run as root
+  user=$(cat /usr/lib/aurto/user)
+  exec sudo -u "$user" "$0" "$@"
+fi
 
 bin_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 lib_dir="$bin_dir/../lib/aurto"
