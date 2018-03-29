@@ -5,6 +5,8 @@ set -eu
 
 lib_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 user=$(cat /usr/lib/aurto/user)
+# shellcheck source=./shared-functions disable=SC1091
+source "$lib_dir/shared-functions"
 
 if [ -z "$user" ]; then
   echo 'Missing /usr/lib/aurto/user' >&2
@@ -12,6 +14,8 @@ if [ -z "$user" ]; then
 fi
 
 pacsync aurto >/dev/null || true
+
+modify=$(last_pkg_modify)
 
 echo "Running: aursync --no-view --no-confirm --repo aurto --chroot --update" >&2
 sudo -u "$user" \
@@ -27,3 +31,10 @@ fi
 
 pacsync aurto || true
 paccache -rk1 -c /var/cache/pacman/aurto
+
+after_modify=$(last_pkg_modify)
+if [ "${after_modify:-0}" != "${modify:-0}" ]; then
+  ## prompt listeners to `/var/lib/pacman/local` that something has changed
+  ## E.g. RaphaelRochet/arch-update
+  touch /var/lib/pacman/local/aurto-arch-update
+fi

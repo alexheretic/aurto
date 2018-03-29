@@ -17,3 +17,7 @@ else
   function dim { bold "$@"; }
   function rm_last_print { return; }
 fi
+
+function last_pkg_modify {
+  stat /var/cache/pacman/aurto/*.pkg.tar* -c '%Y' 2>/dev/null | sort | tail -n1 | tr -d '\n'
+}
