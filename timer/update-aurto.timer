@@ -3,6 +3,7 @@ Description=Updates 'aurto' repo every hour
 
 [Timer]
 OnCalendar=*-*-* *:30:00
+OnActiveSec=5s
 
 [Install]
 WantedBy=timers.target
