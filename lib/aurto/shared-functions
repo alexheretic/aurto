@@ -18,6 +18,7 @@ else
   function rm_last_print { return; }
 fi
 
+## Returns epoch date of the latest modified time of a aurto package
 function last_pkg_modify {
   stat /var/cache/pacman/aurto/*.pkg.tar* -c '%Y' 2>/dev/null | sort | tail -n1 | tr -d '\n'
 }
