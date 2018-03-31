@@ -1,5 +1,5 @@
 # aurto
-A simple Arch Linux aur tool for managing a local 'aurto' package repository with [aurutils](https://github.com/AladW/aurutils).
+An Arch Linux AUR tool for managing an auto-updating local 'aurto' package repository using [aurutils](https://github.com/AladW/aurutils).
 
 ![](https://image.ibb.co/imkghn/output_4.gif "Usage v0.6")
 
@@ -45,7 +45,7 @@ View the contents of the ***aurto*** repo.
 pacman -Sl aurto
 ```
 
-Check recent auto-update logs.
+Check recent automatic update logs.
 ```sh
 journalctl -eu update-aurto
 ```
