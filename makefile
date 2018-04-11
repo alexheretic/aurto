@@ -11,4 +11,6 @@ all:
 	@install -D lib/aurto/* -t target$(PREFIX)/lib/aurto
 	@install -D timer/* -t target$(PREFIX)/lib/systemd/system
 
+	@install -D completion/bash/aurto target$(PREFIX)/share/bash-completion/completions/aurto
+
 	@if command -v tree >/dev/null 2>&1; then tree target; fi
