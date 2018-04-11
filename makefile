@@ -12,5 +12,6 @@ all:
 	@install -D timer/* -t target$(PREFIX)/lib/systemd/system
 
 	@install -D completion/bash/aurto target$(PREFIX)/share/bash-completion/completions/aurto
+	@install -D completion/fish/aurto.fish target$(PREFIX)/share/fish/completions/aurto.fish
 
 	@if command -v tree >/dev/null 2>&1; then tree target; fi
