@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-## bash completion for aurto
+## Bash completion for aurto
 
 _aurto() {
   COMPREPLY=()
@@ -7,6 +7,9 @@ _aurto() {
   local prev="${COMP_WORDS[COMP_CWORD-1]}"
   if [[ $prev == 'aurto' ]]; then
     mapfile -t COMPREPLY < <(compgen -W 'add remove addpkg' -- "$cur")
+    return 0
+  elif [[ ${COMP_WORDS[0]} == 'aurto' ]] && [[ ${COMP_WORDS[1]} == 'remove' ]]; then
+    mapfile -t COMPREPLY < <(compgen -W "$(pacman -Slq aurto 2>/dev/null)" -- "$cur")
     return 0
   fi
 }

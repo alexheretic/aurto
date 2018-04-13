@@ -1,9 +1,10 @@
-function _aurto_no_command
-  set cmd (commandline -opc)
-  if [ (count $cmd) -eq 1 -a $cmd[1] = 'aurto' ]
-    return 0
-  end
-  return 1
-end
+## Tab completion for aurto
 
-complete -f -c aurto -n '_aurto_no_command' -a 'add addpkg remove'
+complete -c aurto -x -n '__fish_use_subcommand' -a 'add' -d 'Add & build aur packages by name'
+complete -c aurto -x -n '__fish_seen_subcommand_from add'
+
+complete -c aurto -x -n '__fish_use_subcommand' -a 'addpkg' -d 'Add prebuilt aur package files'
+complete -c aurto -r -n '__fish_seen_subcommand_from addpkg'
+
+complete -c aurto -x -n '__fish_use_subcommand' -a 'remove' -d 'Remove aur packages by name'
+complete -c aurto -x -n '__fish_seen_subcommand_from remove' -a '(pacman -Slq aurto 2>/dev/null)'
