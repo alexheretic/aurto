@@ -17,12 +17,9 @@ source=("aurto-git.tar.gz")
 sha256sums=('eb94c0a2920ddea570621da7326f3d60c30401e8c42073b5b3ed3b1216c1ce4b')
 
 build() {
-  tar xf aurto-git.tar.gz
-  cd /home/alex/project/aurto
   make
 }
 
 package() {
-  cd /home/alex/project/aurto
   cp -r target/* "$pkgdir"/
 }

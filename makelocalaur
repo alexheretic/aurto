@@ -3,7 +3,7 @@ set -eu
 script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 cd "$script_dir"/..
-tar zcf aurto-git.tar.gz "$script_dir"
+tar zcf aurto-git.tar.gz -C "$script_dir" .
 mv aurto-git.tar.gz "$script_dir"/aur
 cd "$script_dir"/aur
 
