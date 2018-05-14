@@ -1,5 +1,7 @@
 [Unit]
 Description=Updates 'aurto' repo
+After=network-online.target
+Wants=network-online.target
 
 [Service]
 ExecStart=/usr/lib/aurto/update-aurto
