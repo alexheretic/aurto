@@ -1,4 +1,5 @@
 # Maintainer: Alex Butler <alexheretic@gmail.com>
+# Only used for local package testing, see AUR for the actual PKGBUILD
 pkgname=aurto
 pkgver=###VERSION
 pkgrel=999
@@ -9,12 +10,15 @@ license=('MIT')
 depends=('aurutils<1.6.0'
          'devtools'
          'systemd'
-         'pacutils')
+         'pacutils'
+         'pacman-contrib')
 optdepends=()
 makedepends=()
 install="aurto.install"
 source=("aurto-git.tar.gz")
 sha256sums=('eb94c0a2920ddea570621da7326f3d60c30401e8c42073b5b3ed3b1216c1ce4b')
+backup=('usr/lib/systemd/system/check-aurto-git-trigger.timer'
+        'usr/lib/systemd/system/update-aurto.timer')
 
 build() {
   make
