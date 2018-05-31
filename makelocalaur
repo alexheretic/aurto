@@ -2,8 +2,10 @@
 set -eu
 script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
+rm -rf "$script_dir"/*-999-*pkg*
+
 cd "$script_dir"/..
-tar zcf aurto-git.tar.gz -C "$script_dir" .
+tar zcf aurto-git.tar.gz --exclude='./target' --exclude='./trust-check/target' -C "$script_dir" .
 mv aurto-git.tar.gz "$script_dir"/aur
 cd "$script_dir"/aur
 

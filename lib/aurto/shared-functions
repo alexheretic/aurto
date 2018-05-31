@@ -4,6 +4,7 @@ if test -t 1; then
   function green { echo -e "\\e[32m$*\\e[39m"; }
   function cyan { echo -e "\\e[36m$*\\e[39m"; }
   function red { echo -e "\\e[31m$*\\e[39m"; }
+  function yellow { echo -e "\\e[33m$*\\e[39m"; }
   function dim { echo -e "\\e[2m$*\\e[22m"; }
   function rm_last_print {
     printf "\\033[1A"  # move cursor one line up
@@ -14,6 +15,7 @@ else
   function green { bold "$@"; }
   function cyan { bold "$@"; }
   function red { bold "$@"; }
+  function yellow { bold "$@"; }
   function dim { bold "$@"; }
   function rm_last_print { return; }
 fi
@@ -21,4 +23,30 @@ fi
 ## Returns epoch date of the latest modified time of a aurto package
 function last_pkg_modify {
   stat /var/cache/pacman/aurto/*.pkg.tar* -c '%Y' 2>/dev/null | sort | tail -n1 | tr -d '\n'
+}
+
+## Takes '\n' separated things and returns a ' ' separated unique sequence (no empties)
+function new_line_to_space_separated_unique {
+  local space_sep=""
+
+  while read -r line; do
+    if [ ! -z "$line" ] && [[ $space_sep != *" $line "* ]]; then
+      space_sep="$space_sep $line "
+    fi
+  done <<< "$1"
+
+  echo "$space_sep" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' | tr -s ' '
+}
+
+## Works on trust-check output returning packages that are not/no longer in AUR
+function not_in_aur_packages {
+  local packages=""
+
+  while read -r line; do
+    if [ ! -z "$line" ] && [[ $line = *"::not-in-aur"* ]]; then
+      packages="$packages $(echo "$line" | cut -d':' -f1)"
+    fi
+  done <<< "$1"
+
+  echo "$packages" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' | tr -s ' '
 }

@@ -20,6 +20,39 @@ fi
 
 pacsync aurto >/dev/null || true
 
+## Check trust
+## - remove packages no longer in the AUR
+## - remove packages with maintainers lacking trust
+if [ -f /etc/aurto/trusted-users ]; then
+  echo "aurto: Checking maintainer trust..." >&2
+else
+  echo "aurto: Checking maintainer trust... $(dim disabled)" >&2
+fi
+# shellcheck disable=SC2046
+mistrust=$("$lib_dir"/trust-check $(pacman -Slq aurto))
+if [ -z "$mistrust" ]; then
+  if [ -f /etc/aurto/trusted-users ]; then
+    rm_last_print
+    echo "Checking maintainer trust... $(green ✓)" >&2
+  fi
+else
+  not_in_aur=$(not_in_aur_packages "$mistrust")
+  mistrusted_pkgs=$(new_line_to_space_separated_unique "$(echo "$mistrust" | grep -v '::' | cut -d: -f1)")
+
+  if [ ! -z "$not_in_aur" ]; then
+    rm_last_print
+    # shellcheck disable=SC2086
+    aurto remove $not_in_aur
+    echo "$(yellow WARNING:) Packages no longer in AUR removed from aurto: $(yellow "$not_in_aur")" >&2
+  fi
+  if [ ! -z "$mistrusted_pkgs" ]; then
+    # shellcheck disable=SC2086
+    aurto remove $mistrusted_pkgs
+    echo -n "$(yellow WARNING:) Packages with unknown maintainers removed from aurto, " >&2
+    echo "re-add with: $(green aurto add) $(cyan "$mistrusted_pkgs")" >&2
+  fi
+fi
+
 modify=$(last_pkg_modify)
 
 echo "Running: aursync --no-view --no-confirm --repo aurto --chroot --update" >&2

@@ -7,6 +7,8 @@ An Arch Linux AUR tool for managing an auto-updating local 'aurto' package repos
 - Automatic on startup & hourly update of aur packages in the ***aurto*** repo.
 - Automatic daily update of `*-git` packages in the ***aurto*** repo.
 - Uses _makechrootpkg_ to build packages isolated from the main system.
+- Automatic removal of packages no longer in the AUR from the ***aurto*** repo.
+- Automatic removal of packages with unknown/distrusted maintainers from the ***aurto*** repo.
 
 # Install
 From a plain Arch install, first install **aurutils** from the aur (skip if already installed).
@@ -55,14 +57,38 @@ Add a directory full of built packages to the ***aurto*** repo
 aurto addpkg $(find /path/to/packages/*pkg.tar*)
 ```
 
+Show repo-less installed packages, these may have not been added to ***aurto*** yet or may have been automatically dropped from ***aurto*** because of maintainer change or removal from the AUR.
+```sh
+pacman -Qm
+```
+
 Rebuild all orphans packages into the ***aurto*** repo
 ```sh
 aurto add $(pacman -Qqm)
 ```
 
-# Limitations & Security
-aurto automatically builds and regularly re-builds updated remote code from the aur.
-Code is _built_ in a clean chroot, but presumably will eventually be installed to your system.
-Only add aur packages from maintainers you trust.
+# Maintainer Trust
+**aurto** uses a system of maintainer trust for limited security. On adding packages with unknown maintainers you'll be asked whether you want to trust these maintainers.
+```
+$ aurto add spotify
+aurto: Trust maintainer(s): AWhetter? [y/N]
+```
+If not the package will _not_ be added to the ***aurto*** repo.
 
-aurto is for simple folk's simple needs. If it can't do what you want uninstall & use [aurutils](https://github.com/AladW/aurutils) directly.
+If any ***aurto*** repo packages changes maintainer to an unknown maintainer they will be removed from the ***aurto*** repo on the next _update-aurto_ run. A warning will appear in the _update-aurto_ logs
+```
+WARNING: Packages with unknown maintainers removed from aurto, ...
+```
+If desired such packages can be re-added and the new maintainer added to the local trusted users.
+
+Local trusted users are stored in `/etc/aurto/trusted-users` initially populated with the [Arch Linux Trusted Users](https://wiki.archlinux.org/index.php/Trusted_Users#Active_Trusted_Users) & me.
+
+Clear `/etc/aurto/trusted-users` to trust no-one.<br/>
+Remove `/etc/aurto/trusted-users` to trust everyone.
+
+# Limitations & Security
+**aurto** automatically builds and regularly re-builds updated remote code from the aur.
+Code is _built_ in a clean chroot, but presumably will eventually be installed to your system.
+Take care trusting maintainers.
+
+If aurto can't do what you want use [aurutils](https://github.com/AladW/aurutils) directly.

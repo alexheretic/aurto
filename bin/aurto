@@ -19,19 +19,63 @@ source "$lib_dir/shared-functions"
 
 function aurto_sync { sudo pacsync aurto >/dev/null; }
 
+function check_new_package_trust {
+  local mistrust
+  local not_in_aur
+  local mistrusted_users
+
+  if [ -f /etc/aurto/trusted-users ]; then
+    echo "aurto: Checking maintainer trust..." >&2
+  else
+    echo "aurto: Checking maintainer trust... $(dim disabled)" >&2
+  fi
+
+  mistrust=$("$lib_dir"/trust-check "${@:1}")
+  if [ -z "$mistrust" ]; then
+    if [ -f /etc/aurto/trusted-users ]; then
+      rm_last_print
+      echo "aurto: Checking maintainer trust... $(green ✓)" >&2
+    fi
+  else
+    not_in_aur=$(not_in_aur_packages "$mistrust")
+    if [ ! -z "$not_in_aur" ]; then
+      rm_last_print
+      echo "aurto: Package not in AUR: $(yellow "$not_in_aur")" >&2
+      exit 1
+    fi
+
+    mistrusted_users=$(new_line_to_space_separated_unique "$(echo "$mistrust" | cut -d: -f2)")
+    rm_last_print
+    echo -n "aurto: Trust maintainer(s): $(bold "$mistrusted_users")? [y/N] " >&2
+    read -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+      echo "aurto: Adding $(bold "$mistrusted_users") >> /etc/aurto/trusted-users" >&2
+      # shellcheck disable=SC2001
+      echo "$mistrusted_users" | sed -e 's/ /\n/g' >> /etc/aurto/trusted-users
+    else
+      exit 1
+    fi
+  fi
+}
+
 if [ "$command" == "add" ] && [ -n "$arg1" ]; then
+  check_new_package_trust "${@:2}"
   aurto_sync
   echo "aurto: Running: $(dim aursync --no-view --no-confirm --chroot --repo=aurto) $(cyan "${*:2}")" >&2
   "$lib_dir"/summerize-build aursync --no-view --no-confirm --chroot --repo=aurto "${@:2}"
   aurto_sync
   echo -e "aurto: To install run: $(green pacman -Syu) $(cyan "${*:2}")" >&2
+
 elif [ "$command" == "addpkg" ] && [ -n "$arg1" ]; then
+  check_new_package_trust "${@:2}"
   echo "aurto: Running: $(dim repo-add /var/cache/pacman/aurto/aurto.db.tar) $(cyan "${*:2}")" >&2
-  repo-add /var/cache/pacman/aurto/aurto.db.tar "${@:2}"
+  "$lib_dir"/summerize-build repo-add /var/cache/pacman/aurto/aurto.db.tar "${@:2}"
   for pkg in "${@:2}"; do
     cp "$pkg" /var/cache/pacman/aurto/
   done
   aurto_sync
+
 elif [ "$command" == "remove" ] && [ -n "$arg1" ]; then
   removed=""
   for pkg in "${@:2}"; do
@@ -47,6 +91,7 @@ elif [ "$command" == "remove" ] && [ -n "$arg1" ]; then
     echo -e "aurto: Removed $(cyan "$removed")" >&2
     aurto_sync
   fi
+
 else
   echo "$(bold aurto) v$version: simple management tool for the 'aurto' repository"
   echo "  Usage: $(green aurto add)|$(green addpkg)|$(green remove) $(cyan PACKAGES...)"
