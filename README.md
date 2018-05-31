@@ -6,6 +6,7 @@ An Arch Linux AUR tool for managing an auto-updating local 'aurto' package repos
 - Simple `aurto add`, `aurto remove`, `aurto addpkg` management of local ***aurto*** repo packages.
 - Automatic on startup & hourly update of aur packages in the ***aurto*** repo.
 - Automatic daily update of `*-git` packages in the ***aurto*** repo.
+- Maintainer trust system: Package maintainers must be ok-ed before adding into, or auto-updating in, the ***aurto*** repo.
 - Uses _makechrootpkg_ to build packages isolated from the main system.
 - Automatic removal of packages no longer in the AUR from the ***aurto*** repo.
 - Automatic removal of packages with unknown/distrusted maintainers from the ***aurto*** repo.
@@ -73,13 +74,13 @@ aurto add $(pacman -Qqm)
 $ aurto add spotify
 aurto: Trust maintainer(s): AWhetter? [y/N]
 ```
-If not the package will _not_ be added to the ***aurto*** repo.
+If you don't say **y** the package is not added.
 
-If any ***aurto*** repo packages changes maintainer to an unknown maintainer they will be removed from the ***aurto*** repo on the next _update-aurto_ run. A warning will appear in the _update-aurto_ logs
+If any ***aurto*** repo packages change maintainer to an unknown user the packages will be removed from the ***aurto*** repo on the next _update-aurto_ run. A warning will appear in the _update-aurto_ logs
 ```
 WARNING: Packages with unknown maintainers removed from aurto, ...
 ```
-If desired such packages can be re-added and the new maintainer added to the local trusted users.
+If desired such packages can be re-added and the new maintainers added to the local trusted users.
 
 Local trusted users are stored in `/etc/aurto/trusted-users` initially populated with the [Arch Linux Trusted Users](https://wiki.archlinux.org/index.php/Trusted_Users#Active_Trusted_Users) & me.
 
