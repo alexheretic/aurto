@@ -55,6 +55,11 @@ function check_auto_updates {
   done
 
   clean_aurbuild_build
+
+  ## clean up unused dependencies installed with makepkg -s
+  ## doing it here allows re-use during multiple makepkg calls, rather than -r
+  arch-nspawn /var/lib/aurbuild/"$(uname -m)/$user" /usr/bin/env bash -c \
+    "pacman -Rns --noconfirm \$(pacman -Qtdq) || true" >/dev/null 2>&1
 }
 
 # rm the temporary build files
