@@ -11,6 +11,18 @@ _aurto() {
   elif [[ ${COMP_WORDS[0]} == 'aurto' ]] && [[ ${COMP_WORDS[1]} == 'remove' ]]; then
     mapfile -t COMPREPLY < <(compgen -W "$(pacman -Slq aurto 2>/dev/null)" -- "$cur")
     return 0
+  elif [[ ${COMP_WORDS[0]} == 'aurto' ]] \
+    && [[ ${COMP_WORDS[1]} == 'add' ]] \
+    && [[ ${#cur} -gt 2 ]] \
+    && command -v aursearch >/dev/null 2>&1 \
+    && command -v jq >/dev/null 2>&1
+  then
+    local search
+    search=$(aursearch -nrP "^$cur" \
+              | jq '.[].results[] | .Name' \
+              | cut -d'"' -f2)
+    mapfile -t COMPREPLY < <(compgen -W "$search" -- "$cur")
+    return 0
   fi
 }
 complete -F _aurto aurto
