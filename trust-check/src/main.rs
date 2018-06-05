@@ -22,8 +22,14 @@ const LOCAL_TRUST_PATH: &str = "/etc/aurto/trusted-users";
 
 fn main() -> Res<()> {
     let mut packages = vec![];
-    for arg in env::args().skip(1) {
-        packages.push(translate_full_package(arg)?);
+    {
+        let mut unique_args = HashSet::new();
+        for arg in env::args().skip(1) {
+            let pkg = translate_full_package(arg)?;
+            if unique_args.insert(pkg.clone()) {
+                packages.push(pkg);
+            }
+        }
     }
 
     if packages.is_empty() || packages.iter().any(|p| p.starts_with('-')) {

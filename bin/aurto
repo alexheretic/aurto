@@ -61,7 +61,7 @@ function check_new_package_trust {
 
 if [ "$command" == "add" ] && [ -n "$arg1" ]; then
   # shellcheck disable=SC2046
-  check_new_package_trust $(aurchain "${@:2}")
+  check_new_package_trust "${@:2}" $(aurchain "${@:2}" 2>/dev/null || true)
   aurto_sync
   echo "aurto: Running: $(dim aursync --no-view --no-confirm --chroot --repo=aurto) $(cyan "${*:2}")" >&2
   "$lib_dir"/summerize-build aursync --no-view --no-confirm --chroot --repo=aurto "${@:2}"
