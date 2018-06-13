@@ -98,10 +98,10 @@ else
   echo "  Usage: $(green aurto add)|$(green addpkg)|$(green remove) $(cyan PACKAGES...)"
   echo
   echo "  Examples"
-  echo "  - add: build, or rebuild if newer than existing, one or more aur packages & add to the 'aurto' repo"
+  echo "  - add: build aur packages & dependencies, add them to the 'aurto' repo"
   echo "      $(green aurto add) $(cyan aurutils)"
   echo
-  echo "  - remove: remove a package from the 'aurto' repo (does not uninstall)"
+  echo "  - remove: remove packages from the 'aurto' repo (does not uninstall)"
   echo "      $(green aurto remove) $(cyan aurutils)"
   echo
   echo "  - addpkg: add a prebuilt package to the 'aurto' repo"
