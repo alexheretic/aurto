@@ -63,8 +63,8 @@ if [ "$command" == "add" ] && [ -n "$arg1" ]; then
   # shellcheck disable=SC2046
   check_new_package_trust "${@:2}" $(aurchain "${@:2}" 2>/dev/null || true)
   aurto_sync
-  echo "aurto: Running: $(dim aursync --no-view --no-confirm --chroot --repo=aurto) $(cyan "${*:2}")" >&2
-  "$lib_dir"/summerize-build aursync --no-view --no-confirm --chroot --repo=aurto "${@:2}"
+  echo "aurto: Running: $(dim aursync --no-view --no-confirm ${chroot_arg:---no-ver} --repo=aurto) $(cyan "${*:2}")" >&2
+  "$lib_dir"/summerize-build aursync --no-view --no-confirm ${chroot_arg:---no-ver} --repo=aurto "${@:2}"
   aurto_sync
   echo -e "aurto: To install run: $(green pacman -Syu) $(cyan "${*:2}")" >&2
 

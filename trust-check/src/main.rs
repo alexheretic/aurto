@@ -40,7 +40,8 @@ fn main() -> Res<()> {
 
     let trusted = if trust_everyone {
         HashSet::new()
-    } else {
+    }
+    else {
         local_trusted_users()?
     };
 
@@ -97,8 +98,13 @@ fn package_maintainers<T: AsRef<str>>(
 ) -> Res<(Vec<MaintainedPackage>, Vec<String>)> {
     let url = {
         let mut url = AURWEB_INFO.to_owned();
-        for pkg in packages {
-            url = url + "&arg[]=" + valid_arch_package_name(pkg.as_ref())?;
+        for pkg in packages
+            .iter()
+            .flat_map(|p| p.as_ref().split('\n'))
+            .map(|p| p.trim())
+            .filter(|p| !p.is_empty())
+        {
+            url = url + "&arg[]=" + valid_arch_package_name(pkg)?;
         }
         url
     };

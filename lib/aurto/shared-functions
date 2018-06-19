@@ -20,6 +20,12 @@ else
   function rm_last_print { return; }
 fi
 
+## file /usr/lib/aurto/conf-disable-chroot can be used to disable chroot builds
+export chroot_arg='--chroot'
+if test -f /usr/lib/aurto/conf-disable-chroot; then
+  export chroot_arg=''
+fi
+
 ## Returns epoch date of the latest modified time of a aurto package
 function last_pkg_modify {
   stat /var/cache/pacman/aurto/*.pkg.tar* -c '%Y' 2>/dev/null | sort | tail -n1 | tr -d '\n'

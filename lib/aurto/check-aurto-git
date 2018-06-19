@@ -6,6 +6,9 @@ lib_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 user=$(cat /usr/lib/aurto/user)
 command -v aurfetch >/dev/null 2>&1 || { echo >&2 "aurfetch not installed. Aborting."; exit 1; }
 
+# shellcheck source=./shared-functions disable=SC1091
+source "$lib_dir/shared-functions"
+
 function clean_aurbuild_build {
   if test -d /var/lib/aurbuild/"$(uname -m)/$user"/build; then
     rm -rf /var/lib/aurbuild/"$(uname -m)/$user"/build/*
@@ -23,21 +26,36 @@ function check_auto_updates {
       before_rel=$(grep -m1 pkgrel= PKGBUILD | sed -e 's/^[^=]*=//g')
       installed_ver=$(pacman -Q "$dir" | sed -e 's/^[^ ]* //g')
 
-      # TODO this is pretty fragile relying on aurutils internals
-      if ! makepkg_output=$(arch-nspawn /var/lib/aurbuild/"$(uname -m)/$user" \
-        --bind="$lib_dir"/tmp/"$dir" \
-        -u builduser \
-        /usr/bin/env bash -c "
-          cd $lib_dir/tmp/$dir
-          makepkg -sco --noprepare --noconfirm 2>&1
-        ")
-      then
-        echo -e " \\e[31mfailed\\e[39m" >&2
-        echo "---makepkg output---" >&2
-        echo "$makepkg_output" >&2
-        cd ..
-        rm -rf "$dir"
-        continue
+      if test -z "$chroot_arg"; then
+        if ! makepkg_output=$(sudo -u "$user" /usr/bin/env bash -c "
+            cd $lib_dir/tmp/$dir
+            makepkg -sco --noprepare --noconfirm 2>&1
+          ")
+        then
+          echo -e " \\e[31mfailed\\e[39m" >&2
+          echo "---makepkg output---" >&2
+          echo "$makepkg_output" >&2
+          cd ..
+          rm -rf "$dir"
+          continue
+        fi
+      else
+        # TODO this is pretty fragile relying on aurutils internals
+        if ! makepkg_output=$(arch-nspawn /var/lib/aurbuild/"$(uname -m)/$user" \
+          --bind="$lib_dir"/tmp/"$dir" \
+          -u builduser \
+          /usr/bin/env bash -c "
+            cd $lib_dir/tmp/$dir
+            makepkg -sco --noprepare --noconfirm 2>&1
+          ")
+        then
+          echo -e " \\e[31mfailed\\e[39m" >&2
+          echo "---makepkg output---" >&2
+          echo "$makepkg_output" >&2
+          cd ..
+          rm -rf "$dir"
+          continue
+        fi
       fi
 
       after_ver=$(grep -m1 pkgver= PKGBUILD | sed -e 's/^[^=]*=//g')

@@ -55,10 +55,10 @@ fi
 
 modify=$(last_pkg_modify)
 
-echo "Running: aursync --no-view --no-confirm --repo aurto --chroot --update" >&2
+echo "Running: aursync --no-view --no-confirm --repo aurto $chroot_arg --update" >&2
 sudo -u "$user" \
  "$lib_dir"/summerize-build \
- aursync --no-view --no-confirm --repo aurto --chroot --update
+ aursync --no-view --no-confirm --repo aurto $chroot_arg --update
 
 if rm "$lib_dir/check-vcs" 2>/dev/null; then
   git_outdated=$("$lib_dir/check-aurto-git")
