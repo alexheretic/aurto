@@ -28,8 +28,9 @@ makepkg -srci
 
 ```
 
-Optional: Add the **aurto** itself to the 'aurto' repo using the package you just built.
+Optional: Add the **aurutils** & **aurto** itself to the 'aurto' repo using the package you just built.
 ```sh
+aurto addpkg aurutils*pkg.tar*
 aurto addpkg aurto*pkg.tar*
 ```
 
