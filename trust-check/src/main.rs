@@ -10,6 +10,7 @@
 extern crate curl;
 extern crate json;
 
+use std::borrow::Cow;
 use std::collections::HashSet;
 use std::error::Error;
 use std::path::Path;
@@ -40,8 +41,7 @@ fn main() -> Res<()> {
 
     let trusted = if trust_everyone {
         HashSet::new()
-    }
-    else {
+    } else {
         local_trusted_users()?
     };
 
@@ -73,8 +73,7 @@ fn translate_full_package(arg: String) -> Result<String, String> {
         let mut name_bits: Vec<_> = archive_name.split('-').rev().skip(3).collect();
         name_bits.reverse();
         Ok(name_bits.join("-"))
-    }
-    else {
+    } else {
         Ok(arg)
     }
 }
@@ -104,7 +103,7 @@ fn package_maintainers<T: AsRef<str>>(
             .map(|p| p.trim())
             .filter(|p| !p.is_empty())
         {
-            url = url + "&arg[]=" + valid_arch_package_name(pkg)?;
+            url = url + "&arg[]=" + &uri_encode_pkg(valid_arch_package_name(pkg)?);
         }
         url
     };
@@ -128,6 +127,7 @@ fn package_maintainers<T: AsRef<str>>(
             .members()
             .filter_map(|info| info["Name"].as_str().map(|s| s.to_lowercase()))
             .collect();
+
         packages
             .iter()
             .map(|p| p.as_ref().to_lowercase())
@@ -156,9 +156,16 @@ fn valid_arch_package_name(name: &str) -> Result<&str, String> {
 
     if !name.is_empty() && name.chars().all(valid_char) {
         Ok(name)
-    }
-    else {
+    } else {
         Err(format!("package name `{}` is invalid", name))
+    }
+}
+
+fn uri_encode_pkg(pkg_name: &str) -> Cow<str> {
+    if pkg_name.contains('@') || pkg_name.contains('+') {
+        Cow::Owned(pkg_name.replace('@', "%40").replace('+', "%2B"))
+    } else {
+        Cow::Borrowed(pkg_name)
     }
 }
 
@@ -187,4 +194,14 @@ fn translate_full_package_for_archive_name() {
         translate_full_package("../gnome-shell-extension-arch-update-26-1-any.pkg.tar.gz".into()),
         Ok("gnome-shell-extension-arch-update".into()),
     );
+}
+
+#[test]
+fn uri_encode_normal_pkg() {
+    assert_eq!(&uri_encode_pkg("aurto"), "aurto");
+}
+
+#[test]
+fn uri_encode_special_pkg() {
+    assert_eq!(&uri_encode_pkg("libc++"), "libc%2B%2B");
 }
