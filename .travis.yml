@@ -3,5 +3,12 @@ before_install:
 - wget -c https://goo.gl/ZzKHFv -O - | tar -xvJ -C /tmp/
 - PATH="/tmp/shellcheck-latest:$PATH"
 script: |
-  shellcheck $(grep -rl '^#!.*[ /]bash$' .)
+  set -e
+
+  (cd bin && shellcheck -x $(grep -rl '^#!.*[ /]bash$' .))
+
+  (cd lib/aurto && shellcheck -x $(grep -rl '^#!.*[ /]bash$' .))
+
   (cd trust-check && cargo test)
+
+  set +e
