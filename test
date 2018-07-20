@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# shellcheck disable=SC2046
+
+set -eux
+
+(cd bin && shellcheck -x $(grep -rl '^#!.*[ /]bash$' .))
+
+(cd lib/aurto && shellcheck -x $(grep -rl '^#!.*[ /]bash$' .))
+
+(cd trust-check && cargo test)
