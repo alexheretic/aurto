@@ -1,0 +1,62 @@
+#compdef aurto
+
+_aurto ()
+{
+    WORDS=()
+    for w in $words[1,(($CURRENT - 1))]; do
+        if [[ w != --* ]]; then WORDS+=$w; fi
+    done
+    _arguments '*:command:_aurto_command'
+}
+
+_aurto_command ()
+{
+    local -a _aurto_cmds
+    _aurto_cmds=(
+        "add:Add package from AUR to aurto repo"
+        "addpkg:Add pre-build package to aurto repo"
+        "remove:Remove package from aurto repo"
+    )
+    if (( $#WORDS == 1 )); then
+        _describe -t commands 'command' _aurto_cmds || compadd "$@"
+    else
+        local cmd="${${_aurto_cmds[(r)$WORDS[2]:*]%%:*}}"
+        if (( $#cmd )); then
+            _arguments '*:argument:_aurto_'$cmd
+        else
+            _message "unknown aurto command: $WORDS[2]"
+        fi
+    fi
+}
+
+_aurto_available_packages ()
+{
+    if ( [[ ${+_aurto_packages_pkgs} -eq 0 ]] || _cache_invalid AURTO_PACKAGES ) &&
+        ! _retrieve_cache AURTO_PACKAGES;
+    then
+        _aurto_packages=($(pacman -Slq aurto 2>/dev/null))
+        _store_cache AURTO_PACKAGES _aurto_packages
+    fi
+}
+
+_aurto_add ()
+{
+    local pref=$words[$CURRENT]
+    _aur_packages=($(aursearch -nrP "^$pref" \
+        | jq '.[].results[] | .Name' \
+        | cut -d'"' -f2))
+    compadd "$@" -a -- _aur_packages
+}
+
+_aurto_addpkg ()
+{
+    _path_files -g "*.pkg.tar.xz"
+}
+
+_aurto_remove ()
+{
+    _aurto_available_packages
+    compadd "$@" -a -- _aurto_packages
+}
+
+_aurto
