@@ -16,6 +16,11 @@ use std::error::Error;
 use std::path::Path;
 use std::{env, fs, str};
 
+use std::alloc::System;
+
+#[global_allocator]
+static GLOBAL: System = System;
+
 type Res<T> = Result<T, Box<Error>>;
 
 const AURWEB_INFO: &str = "https://aur.archlinux.org/rpc/?v=5&type=info";
