@@ -1,7 +1,6 @@
 alad
 alexheretic
 alucryd
-Ambrevar
 anatolik
 andrewSC
 anthraxx
@@ -11,7 +10,7 @@ arojas
 Barthalion
 BlackIkeEagle
 Bluewind
-City
+City-busz
 coderobe
 ConnorBehan
 lfleischer
@@ -49,4 +48,5 @@ tensor5
 wild
 Xyne
 xyproto
+yan12125
 zorun
