@@ -92,7 +92,7 @@ cd "$lib_dir"/tmp || exit 1
 # All *-git packages
 check_for_auto_updates="$(pacman -Slq aurto | grep '\-git$')"
 
-if [ ! -z "$check_for_auto_updates" ]; then
+if [ -n "$check_for_auto_updates" ]; then
   echo "$check_for_auto_updates" | aurfetch >/dev/null 2>&1
   chmod -R 0777 "$lib_dir"/tmp
   check_auto_updates

@@ -39,13 +39,13 @@ else
   not_in_aur=$(not_in_aur_packages "$mistrust")
   mistrusted_pkgs=$(new_line_to_space_separated_unique "$(echo "$mistrust" | grep -v '::' | cut -d: -f1)")
 
-  if [ ! -z "$not_in_aur" ]; then
+  if [ -n "$not_in_aur" ]; then
     rm_last_print
     # shellcheck disable=SC2086
     aurto remove $not_in_aur
     echo "$(yellow WARNING:) Packages no longer in AUR removed from aurto: $(yellow "$not_in_aur")" >&2
   fi
-  if [ ! -z "$mistrusted_pkgs" ]; then
+  if [ -n "$mistrusted_pkgs" ]; then
     # shellcheck disable=SC2086
     aurto remove $mistrusted_pkgs
     echo -n "$(yellow WARNING:) Packages with unknown maintainers removed from aurto, " >&2

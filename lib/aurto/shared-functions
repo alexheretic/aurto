@@ -36,7 +36,7 @@ function new_line_to_space_separated_unique {
   local space_sep=""
 
   while read -r line; do
-    if [ ! -z "$line" ] && [[ $space_sep != *" $line "* ]]; then
+    if [ -n "$line" ] && [[ $space_sep != *" $line "* ]]; then
       space_sep="$space_sep $line "
     fi
   done <<< "$1"
@@ -49,7 +49,7 @@ function not_in_aur_packages {
   local packages=""
 
   while read -r line; do
-    if [ ! -z "$line" ] && [[ $line = *"::not-in-aur"* ]]; then
+    if [ -n "$line" ] && [[ $line = *"::not-in-aur"* ]]; then
       packages="$packages $(echo "$line" | cut -d':' -f1)"
     fi
   done <<< "$1"
