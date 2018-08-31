@@ -38,7 +38,7 @@ function check_new_package_trust {
     fi
   else
     not_in_aur=$(not_in_aur_packages "$mistrust")
-    if [ ! -z "$not_in_aur" ]; then
+    if [ -n "$not_in_aur" ]; then
       rm_last_print
       echo "aurto: Package not in AUR: $(yellow "$not_in_aur")" >&2
       exit 1
