@@ -10,7 +10,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "curl"
-version = "0.4.17"
+version = "0.4.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "curl-sys 0.4.12 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -125,7 +125,7 @@ dependencies = [
 name = "trust-check"
 version = "0.1.0"
 dependencies = [
- "curl 0.4.17 (registry+https://github.com/rust-lang/crates.io-index)",
+ "curl 0.4.18 (registry+https://github.com/rust-lang/crates.io-index)",
  "json 0.11.13 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
@@ -171,7 +171,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [metadata]
 "checksum cc 1.0.25 (registry+https://github.com/rust-lang/crates.io-index)" = "f159dfd43363c4d08055a07703eb7a3406b0dac4d0584d96965a3262db3c9d16"
 "checksum cfg-if 0.1.5 (registry+https://github.com/rust-lang/crates.io-index)" = "0c4e7bb64a8ebb0d856483e1e682ea3422f883c5f5615a90d51a2c82fe87fdd3"
-"checksum curl 0.4.17 (registry+https://github.com/rust-lang/crates.io-index)" = "c8172e96ecfb1a2bfe3843d9d7154099a15130cf4a2f658259c7aa9cc2b5d4ff"
+"checksum curl 0.4.18 (registry+https://github.com/rust-lang/crates.io-index)" = "a9e5285b49b44401518c947d3b808d14d99a538a6c9ffb3ec0205c11f9fc4389"
 "checksum curl-sys 0.4.12 (registry+https://github.com/rust-lang/crates.io-index)" = "78800a6de442f65dab6ce26c6f369c14fc585686432bf4b77119d2d384216c31"
 "checksum json 0.11.13 (registry+https://github.com/rust-lang/crates.io-index)" = "9ad0485404155f45cce53a40d4b2d6ac356418300daed05273d9e26f91c390be"
 "checksum kernel32-sys 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)" = "7507624b29483431c0ba2d82aece8ca6cdba9382bff4ddd0f7490560c056098d"
