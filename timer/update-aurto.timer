@@ -3,7 +3,6 @@ Description=Updates 'aurto' repo every hour
 
 [Timer]
 OnCalendar=*-*-* *:25:00
-OnActiveSec=5s
 RandomizedDelaySec=10min
 
 [Install]

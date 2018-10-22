@@ -1,0 +1,9 @@
+[Unit]
+Description=Updates 'aurto' repo on startup
+
+[Timer]
+OnActiveSec=5s
+Unit=update-aurto.service
+
+[Install]
+WantedBy=timers.target
