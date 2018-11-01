@@ -16,12 +16,22 @@ function clean_aurbuild_build {
 }
 
 function check_auto_updates {
+  local dependencies_updated=false
+
   clean_aurbuild_build
 
   for dir in *; do
     if [[ -d $dir ]] && pacman -Qq "$dir" >/dev/null 2>&1; then
       cd "$dir" || exit
       echo -n "Checking $dir..." >&2
+      
+      if [ "$dependencies_updated" = false ]; then
+        ## ensure dependencies are up to date
+        arch-nspawn /var/lib/aurbuild/"$(uname -m)/$user" /usr/bin/env bash -c \
+          "pacman -Syu --noconfirm" >/dev/null 2>&1
+        dependencies_updated=true
+      fi
+
       before_ver=$(grep -m1 pkgver= PKGBUILD | sed -e 's/^[^=]*=//g')
       before_rel=$(grep -m1 pkgrel= PKGBUILD | sed -e 's/^[^=]*=//g')
       installed_ver=$(pacman -Q "$dir" | sed -e 's/^[^ ]* //g')
