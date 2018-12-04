@@ -42,9 +42,7 @@ _aurto_available_packages ()
 _aurto_add ()
 {
     local pref=$words[$CURRENT]
-    _aur_packages=($(aursearch -nrP "^$pref" \
-        | jq '.[].results[] | .Name' \
-        | cut -d'"' -f2))
+    _aur_packages=($(aur pkglist -P "^$pref"))
     compadd "$@" -a -- _aur_packages
 }
 
