@@ -60,11 +60,16 @@ function check_new_package_trust {
 }
 
 if [ "$command" == "add" ] && [ -n "$arg1" ]; then
-  # shellcheck disable=SC2046
-  check_new_package_trust "${@:2}" $(aurchain "${@:2}" 2>/dev/null || true)
+  packages_and_deps=""
+  for i in "${@:2}"; do
+      packages_and_deps="$packages_and_deps
+$(echo "$i" | aur depends | cut -f2 | sort | comm -12 - <(aur pkglist | sort))"
+  done
+  # shellcheck disable=SC2086
+  check_new_package_trust $packages_and_deps
   aurto_sync
-  echo "aurto: Running: $(dim aursync --no-view --no-confirm ${chroot_arg:---no-ver} --repo=aurto) $(cyan "${*:2}")" >&2
-  "$lib_dir"/summerize-build aursync --no-view --no-confirm ${chroot_arg:---no-ver} --repo=aurto "${@:2}"
+  echo "aurto: Running: $(dim aur sync --no-view --no-confirm ${chroot_arg:---no-ver} --database=aurto) $(cyan "${*:2}")" >&2
+  "$lib_dir"/summerize-build aur sync --no-view --no-confirm ${chroot_arg:---no-ver} --database=aurto "${@:2}"
   aurto_sync
   echo -e "aurto: To install run: $(green pacman -Syu) $(cyan "${*:2}")" >&2
 

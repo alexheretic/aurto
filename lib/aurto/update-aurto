@@ -3,6 +3,8 @@
 ## Should be in the same dir as `check-aurto-git`
 set -eu
 
+readonly AURVCS=${AURVCS:-.*-(bzr|git|hg|svn)$}
+
 if [[ $EUID -ne 0 ]]; then
   # retry as root
   exec sudo "$0" "$@"
@@ -55,15 +57,20 @@ fi
 
 modify=$(last_pkg_modify)
 
-echo "Running: aursync --no-view --no-confirm --repo aurto $chroot_arg --update" >&2
+echo "Running: aur sync --no-view --no-confirm --database=aurto $chroot_arg --upgrades" >&2
 sudo -u "$user" \
  "$lib_dir"/summerize-build \
- aursync --no-view --no-confirm --repo aurto $chroot_arg --update
+ aur sync --no-view --no-confirm --database=aurto $chroot_arg --upgrades
 
 if rm "$lib_dir/check-vcs" 2>/dev/null; then
-  git_outdated=$("$lib_dir/check-aurto-git")
-  if [ -n "$git_outdated" ]; then
-    sudo -u "$user" aurto add "$git_outdated"
+  # init vcs sync cache
+  sudo -u "$user" \
+   aur sync "$(aur repo --database=aurto --list | cut -f1 | grep -E "$AURVCS")" \
+   --no-ver-shallow --print >/dev/null 2>&1
+
+  mapfile -t git_outdated < <(sudo -u "$user" aur vercmp-devel | cut -d: -f1)
+  if [ ${#git_outdated[@]} -gt 0 ]; then
+    sudo -u "$user" aurto add "${git_outdated[@]}"
   fi
 fi
 
@@ -79,7 +86,7 @@ fi
 
 ## Clean aurutils cache
 user_home=$(getent passwd "$user" | cut -d: -f6)
-aurutils_cache=$user_home/.cache/aursync
+aurutils_cache=$user_home/.cache/aurutils/sync/
 if [ -d "$aurutils_cache" ]; then
   rm -rf "$aurutils_cache"
 fi

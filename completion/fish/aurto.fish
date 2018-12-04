@@ -2,16 +2,14 @@
 
 function __aurto_complete_add
   set -l search (commandline -ct)
-  if [ (string length $search) -gt 2 ]
-    aursearch -nrP "^$search" \
-      | jq '.[].results[] | .Name' \
-      | cut -d'"' -f2
+  if [ (string length $search) -gt 0 ]
+    aur pkglist -P "^$search"
   end
 end
 
 complete -c aurto -x -n '__fish_use_subcommand' -a 'add' -d 'Add & build aur packages by name'
 complete -c aurto -x -n '__fish_seen_subcommand_from add'
-if type -q aursearch; and type -q jq
+if type -q aur
   complete -c aurto -x -n '__fish_seen_subcommand_from add' -a '(__aurto_complete_add)'
 end
 
