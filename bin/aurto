@@ -47,6 +47,13 @@ function check_new_package_trust {
     mistrusted_users=$(new_line_to_space_separated_unique "$(echo "$mistrust" | cut -d: -f2)")
     rm_last_print
     echo -n "aurto: Trust maintainer(s): $(bold "$mistrusted_users")? [y/N] " >&2
+
+    if [[ $- != *i* ]]; then
+      # not an interactive shell
+      echo -n "n" >&2
+      exit 1
+    fi
+
     read -n 1 -r
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
