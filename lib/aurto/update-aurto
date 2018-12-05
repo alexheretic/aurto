@@ -70,6 +70,7 @@ if rm "$lib_dir/check-vcs" 2>/dev/null; then
 
   mapfile -t git_outdated < <(sudo -u "$user" aur vercmp-devel | cut -d: -f1)
   if [ ${#git_outdated[@]} -gt 0 ]; then
+    sudo -u "$user" aurto remove "${git_outdated[@]}"
     sudo -u "$user" aurto add "${git_outdated[@]}"
   fi
 fi
