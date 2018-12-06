@@ -6,22 +6,17 @@
 //! for each mistrusted package.
 //!
 //! If package is not found in the AUR will output PACKAGE_NAME::not-in-aur
-
-extern crate curl;
-extern crate json;
-
+use std::alloc::System;
 use std::borrow::Cow;
 use std::collections::HashSet;
 use std::error::Error;
 use std::path::Path;
 use std::{env, fs, str};
 
-use std::alloc::System;
-
 #[global_allocator]
 static GLOBAL: System = System;
 
-type Res<T> = Result<T, Box<Error>>;
+type Res<T> = Result<T, Box<dyn Error>>;
 
 const AURWEB_INFO: &str = "https://aur.archlinux.org/rpc/?v=5&type=info";
 const LOCAL_TRUST_PATH: &str = "/etc/aurto/trusted-users";
@@ -166,7 +161,7 @@ fn valid_arch_package_name(name: &str) -> Result<&str, String> {
     }
 }
 
-fn uri_encode_pkg(pkg_name: &str) -> Cow<str> {
+fn uri_encode_pkg(pkg_name: &str) -> Cow<'_, str> {
     if pkg_name.contains('@') || pkg_name.contains('+') {
         Cow::Owned(pkg_name.replace('@', "%40").replace('+', "%2B"))
     } else {
@@ -174,7 +169,7 @@ fn uri_encode_pkg(pkg_name: &str) -> Cow<str> {
     }
 }
 
-fn print_help() -> Result<(), Box<Error>> {
+fn print_help() -> Result<(), Box<dyn Error>> {
     eprintln!("trust-check: output aurto-untrusted package:maintainer");
     eprintln!("  Usage: trust-check PACKAGES...");
     Ok(())
