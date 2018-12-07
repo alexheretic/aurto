@@ -63,15 +63,21 @@ sudo -u "$user" \
  aur sync --no-view --no-confirm --database=aurto $chroot_arg --upgrades
 
 if rm "$lib_dir/check-vcs" 2>/dev/null; then
-  # init vcs sync cache
-  sudo -u "$user" \
-   aur sync "$(aur repo --database=aurto --list | cut -f1 | grep -E "$AURVCS")" \
-   --no-ver-shallow --print >/dev/null 2>&1
+  vcs_pkgs=$(aur repo --database=aurto --list | cut -f1 | grep -E "$AURVCS")
+  if [ -n "$vcs_pkgs" ]; then
+    echo "Checking $(echo "$vcs_pkgs" | wc -l) VCS packages matching $(yellow "$AURVCS") for updates..." >&2
+    # init vcs sync cache
+    sudo -u "$user" \
+     aur sync "$vcs_pkgs" \
+     --no-ver-shallow --print >/dev/null 2>&1
 
-  mapfile -t git_outdated < <(sudo -u "$user" aur vercmp-devel --database=aurto | cut -d: -f1)
-  if [ ${#git_outdated[@]} -gt 0 ]; then
-    sudo -u "$user" aurto remove "${git_outdated[@]}"
-    sudo -u "$user" aurto add "${git_outdated[@]}"
+    mapfile -t git_outdated < <(sudo -u "$user" aur vercmp-devel --database=aurto | cut -d: -f1)
+    if [ ${#git_outdated[@]} -gt 0 ]; then
+      sudo -u "$user" aurto remove "${git_outdated[@]}"
+      sudo -u "$user" aurto add "${git_outdated[@]}"
+    else
+      echo " VCS packages up to date $(green ✓)" >&2
+    fi
   fi
 fi
 
