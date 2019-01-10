@@ -7,7 +7,7 @@ pkgdesc="A simple aur tool for managing a local 'aurto' repository"
 arch=('any')
 url="https://github.com/alexheretic/aurto"
 license=('MIT')
-depends=('aurutils<1.6.0'
+depends=('aurutils'
          'devtools'
          'systemd'
          'pacutils'
