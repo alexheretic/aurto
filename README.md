@@ -57,12 +57,12 @@ Add a directory full of built packages to the ***aurto*** repo
 aurto addpkg $(find /path/to/packages/*pkg.tar*)
 ```
 
-Show repo-less installed packages, these may have not been added to ***aurto*** yet or may have been automatically dropped from ***aurto*** because of maintainer change or removal from the AUR.
+Show no-repo installed packages, these may have not been added to ***aurto*** yet or may have been automatically dropped from ***aurto*** because of maintainer change or removal from the AUR.
 ```sh
 pacman -Qm
 ```
 
-Rebuild all orphans packages into the ***aurto*** repo
+Rebuild all aur/no-repo packages into the ***aurto*** repo
 ```sh
 aurto add $(pacman -Qqm)
 ```
