@@ -5,7 +5,7 @@ An Arch Linux AUR tool for managing an auto-updating local 'aurto' package repos
 
 - Simple `aurto add`, `aurto remove`, `aurto addpkg` management of local ***aurto*** repo packages.
 - Automatic on startup & hourly update of aur packages in the ***aurto*** repo.
-- Automatic daily update of `*-git` packages in the ***aurto*** repo.
+- Automatic daily update of VCS, ie "*-git", packages in the ***aurto*** repo.
 - Maintainer trust system: Package maintainers must be ok-ed before adding into, or auto-updating in, the ***aurto*** repo.
 - Uses _makechrootpkg_ to build packages isolated from the main system.
 - Automatic removal of packages no longer in the AUR from the ***aurto*** repo.
