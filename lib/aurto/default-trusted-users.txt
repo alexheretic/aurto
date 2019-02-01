@@ -1,3 +1,4 @@
+ainola
 alad
 alexheretic
 alucryd
@@ -15,6 +16,8 @@ coderobe
 ConnorBehan
 lfleischer
 eworm
+daurnimator
+dbermond
 Dragonlord
 dvzrv
 eschwartz
@@ -30,12 +33,15 @@ heftig
 jelly
 jleclanche
 jsteel
+kgizdov
 keenerd
 demize
 Lordheavy
+maximbaz
 mtorromeo
 Muflone
 NicoHood
+polyzen
 sangy
 schivmeister
 schuay
