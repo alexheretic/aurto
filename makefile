@@ -3,7 +3,7 @@ PREFIX = /usr
 all:
 	@rm -rf target
 
-	@(cd trust-check && cargo build --release && strip target/release/trust-check)
+	@(cd trust-check && CARGO_INCREMENTAL=0 cargo build --release && strip target/release/trust-check)
 
 	@install -D conf/aurto.pacman.conf target/etc/pacman.d/aurto
 	@install -Dm440 conf/50_aurto_passwordless -t target/etc/sudoers.d
