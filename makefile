@@ -13,7 +13,7 @@ all:
 	@install -D bin/* -t target$(PREFIX)/bin
 	@install -D lib/aurto/* -t target$(PREFIX)/lib/aurto
 	@install trust-check/target/release/trust-check -t target$(PREFIX)/lib/aurto
-	@install -D timer/* -t target$(PREFIX)/lib/systemd/system
+	@install -Dm644 timer/* -t target$(PREFIX)/lib/systemd/system
 
 	@install -D completion/bash/aurto target$(PREFIX)/share/bash-completion/completions/aurto
 	@install -D completion/fish/aurto.fish target$(PREFIX)/share/fish/completions/aurto.fish
