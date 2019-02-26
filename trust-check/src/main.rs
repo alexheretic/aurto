@@ -6,12 +6,10 @@
 //! for each mistrusted package.
 //!
 //! If package is not found in the AUR will output PACKAGE_NAME::not-in-aur
-use std::alloc::System;
-use std::borrow::Cow;
-use std::collections::HashSet;
-use std::error::Error;
-use std::path::Path;
-use std::{env, fs, str};
+use std::{
+    alloc::System, borrow::Cow, collections::HashSet, env, error::Error, ffi::OsStr, fs,
+    path::Path, str,
+};
 
 #[global_allocator]
 static GLOBAL: System = System;
@@ -38,12 +36,7 @@ fn main() -> Res<()> {
     }
 
     let trust_everyone = !Path::new(LOCAL_TRUST_PATH).is_file();
-
-    let trusted = if trust_everyone {
-        HashSet::new()
-    } else {
-        local_trusted_users()?
-    };
+    let trusted = if trust_everyone { HashSet::new() } else { local_trusted_users()? };
 
     let (pkg_maintainers, not_in_aur) = package_maintainers(&packages)?;
 
@@ -68,7 +61,7 @@ fn translate_full_package(arg: String) -> Result<String, String> {
     if arg.contains(".pkg.") {
         let archive_name = Path::new(&arg)
             .file_name()
-            .and_then(|f| f.to_str())
+            .and_then(OsStr::to_str)
             .ok_or_else(|| format!("Can't handle arg `{}`", arg))?;
         let mut name_bits: Vec<_> = archive_name.split('-').rev().skip(3).collect();
         name_bits.reverse();
@@ -100,7 +93,7 @@ fn package_maintainers<T: AsRef<str>>(
         for pkg in packages
             .iter()
             .flat_map(|p| p.as_ref().split('\n'))
-            .map(|p| p.trim())
+            .map(str::trim)
             .filter(|p| !p.is_empty())
         {
             url = url + "&arg[]=" + &uri_encode_pkg(valid_arch_package_name(pkg)?);
@@ -125,7 +118,7 @@ fn package_maintainers<T: AsRef<str>>(
     let not_in_aur: Vec<_> = {
         let in_aur: HashSet<_> = json["results"]
             .members()
-            .filter_map(|info| info["Name"].as_str().map(|s| s.to_lowercase()))
+            .filter_map(|info| info["Name"].as_str().map(str::to_lowercase))
             .collect();
 
         packages
