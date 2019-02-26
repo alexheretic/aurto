@@ -67,6 +67,12 @@ $(echo "$i" | aur depends 2>/dev/null | cut -f2 | sort | comm -12 - <(aur pkglis
   done
   # shellcheck disable=SC2086
   check_new_package_trust $packages_and_deps
+
+  ## Create aurto-add.xxx marker file to indicate `aurto add` is running
+  mkdir -p ~/.cache/aurto
+  aurto_add_temp=$(mktemp ~/.cache/aurto/aurto-add.XXXXXXXX)
+  trap 'rm -f "$aurto_add_temp"' EXIT
+
   aurto_sync
   echo "aurto: Running: $(dim aur sync --no-view --no-confirm ${chroot_arg:---no-ver} --database=aurto --makepkg-conf=/etc/aurto/makepkg-chroot.conf) $(cyan "${*:2}")" >&2
   "$lib_dir"/summerize-build aur sync --no-view --no-confirm ${chroot_arg:---no-ver} \
