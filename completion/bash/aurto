@@ -6,7 +6,7 @@ _aurto() {
   local cur="${COMP_WORDS[COMP_CWORD]}"
   local prev="${COMP_WORDS[COMP_CWORD-1]}"
   if [[ $prev == 'aurto' ]]; then
-    mapfile -t COMPREPLY < <(compgen -W 'add remove addpkg' -- "$cur")
+    mapfile -t COMPREPLY < <(compgen -W 'add remove addpkg status' -- "$cur")
     return 0
   elif [[ ${COMP_WORDS[0]} == 'aurto' ]] && [[ ${COMP_WORDS[1]} == 'remove' ]]; then
     mapfile -t COMPREPLY < <(compgen -W "$(pacman -Slq aurto 2>/dev/null)" -- "$cur")

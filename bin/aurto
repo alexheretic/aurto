@@ -105,9 +105,46 @@ elif [ "$command" == "remove" ] && [ -n "$arg1" ]; then
     aurto_sync
   fi
 
+elif [ "$command" == "status" ]; then
+  echo "$(bold aurto) v$version managing $(bold "$(pacman -Sql aurto | wc -l)") aur packages"
+
+  echo
+  echo "Packages: $(dim pacman -Sl aurto)"
+  pacman -Sl aurto --color=always \
+   | sed 's/^/  /'
+
+  echo
+  echo "Timers: $(dim systemctl list-timers)"
+  list_timers=$(systemctl list-timers -a)
+  echo "  $(echo "$list_timers" | head -n1 | cut -c1-"$COLUMNS")"
+  echo "$list_timers" \
+   | grep -E 'aurto' \
+   | sed 's/^/  /' \
+   | cut -c1-"$COLUMNS"
+
+  echo
+  echo "Recent logs: $(dim journalctl -eu update-aurto --since \'1.5 hours ago\')"
+  journalctl -eu update-aurto --since '1.5 hours ago' \
+   | sed 's/^/  /' \
+   | cut -c1-"$COLUMNS"
+
+  echo
+  echo "Log warnings: $(dim journalctl -eu update-aurto \| grep -v \'Skipping all source file integrity\' \|  grep -E \'ERROR\|WARNING\' -A5 -B5)"
+  log_warns=$(
+    journalctl -eu update-aurto \
+     | grep -v 'Skipping all source file integrity' \
+     | grep -E 'ERROR|WARNING' -A5 -B5 --color=always \
+     | sed 's/^/  /'
+  )
+  if [ -n "$log_warns" ]; then
+    echo "$log_warns" | cut -c1-"$COLUMNS"
+  else
+    green '  None'
+  fi
+
 else
   echo "$(bold aurto) v$version: simple management tool for the 'aurto' repository"
-  echo "  Usage: $(green aurto add)|$(green addpkg)|$(green remove) $(cyan PACKAGES...)"
+  echo "  General usage: $(green aurto add)|$(green addpkg)|$(green remove) $(cyan PACKAGES...)"
   echo
   echo "  Examples"
   echo "  - add: build aur packages & dependencies, add them to the 'aurto' repo"
@@ -118,5 +155,8 @@ else
   echo
   echo "  - addpkg: add a prebuilt package to the 'aurto' repo"
   echo "      $(green aurto addpkg) $(cyan aurutils-2.3.1-1-any.pkg.tar.xz)"
+  echo
+  echo "  - status: current 'aurto' repo packages, logs & info"
+  echo "      $(green aurto status)"
   exit 1
 fi

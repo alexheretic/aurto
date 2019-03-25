@@ -18,3 +18,5 @@ complete -c aurto -r -n '__fish_seen_subcommand_from addpkg'
 
 complete -c aurto -x -n '__fish_use_subcommand' -a 'remove' -d 'Remove aur packages by name'
 complete -c aurto -x -n '__fish_seen_subcommand_from remove' -a '(pacman -Slq aurto 2>/dev/null)'
+
+complete -c aurto -x -n '__fish_use_subcommand' -a 'status' -d 'View current packages, logs & info'

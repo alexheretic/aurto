@@ -42,14 +42,9 @@ The packages are automatically updated periodically,
 you'll see ***aurto*** updates in the same way as other repos after a `pacman -Syu`.
 
 # Useful commands
-View the contents of the ***aurto*** repo.
+View current packages, logs & info.
 ```sh
-pacman -Sl aurto
-```
-
-Check recent automatic update logs.
-```sh
-journalctl -eu update-aurto
+aurto status
 ```
 
 Add a directory full of built packages to the ***aurto*** repo

@@ -16,6 +16,7 @@ _aurto_command ()
         "add:Add package from AUR to aurto repo"
         "addpkg:Add pre-build package to aurto repo"
         "remove:Remove package from aurto repo"
+        "status:View current packages, logs & info"
     )
     if (( $#WORDS == 1 )); then
         _describe -t commands 'command' _aurto_cmds || compadd "$@"
@@ -48,13 +49,17 @@ _aurto_add ()
 
 _aurto_addpkg ()
 {
-    _path_files -g "*.pkg.tar.xz"
+    _path_files -g "*.pkg.tar.*"
 }
 
 _aurto_remove ()
 {
     _aurto_available_packages
     compadd "$@" -a -- _aurto_packages
+}
+
+_aurto_status ()
+{
 }
 
 _aurto
