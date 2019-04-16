@@ -129,9 +129,9 @@ elif [ "$command" == "status" ]; then
    | cut -c1-"$COLUMNS"
 
   echo
-  echo "Log warnings: $(dim journalctl -eu update-aurto \| grep -v \'Skipping all source file integrity\' \|  grep -E \'ERROR\|WARNING\' -A5 -B5)"
+  echo "Log warnings: $(dim journalctl -eu update-aurto --since \'1 week ago\' \| grep -v \'Skipping all source file integrity\' \|  grep -E \'ERROR\|WARNING\' -A5 -B5)"
   log_warns=$(
-    journalctl -eu update-aurto \
+    journalctl -eu update-aurto --since '1 week ago' \
      | grep -v 'Skipping all source file integrity' \
      | grep -E 'ERROR|WARNING' -A5 -B5 --color=always \
      | sed 's/^/  /'
