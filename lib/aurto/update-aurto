@@ -64,7 +64,7 @@ sudo -u "$user" \
   --makepkg-conf=/etc/aurto/makepkg-chroot.conf $chroot_arg --upgrades
 
 if rm "$lib_dir/check-vcs" 2>/dev/null; then
-  vcs_pkgs=$(aur repo --database=aurto --list | cut -f1 | grep -E "$AURVCS")
+  vcs_pkgs=$(aur repo --database=aurto --list | cut -f1 | grep -E "$AURVCS" || true)
   if [ -n "$vcs_pkgs" ]; then
     echo "Checking $(echo "$vcs_pkgs" | wc -l) VCS packages matching $(yellow "$AURVCS") for updates..." >&2
     # init vcs sync cache
