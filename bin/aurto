@@ -92,12 +92,16 @@ elif [ "$command" == "addpkg" ] && [ -n "$arg1" ]; then
 elif [ "$command" == "remove" ] && [ -n "$arg1" ]; then
   removed=""
   for pkg in "${@:2}"; do
-    remove_out=$(repo-remove /var/cache/pacman/aurto/aurto.db.tar "$pkg" 2>&1)
-    if [[ $remove_out = *"ERROR"* ]]; then
-      echo "aurto: $(cyan "$pkg") $(red not found)" >&2
+    if remove_out=$(repo-remove /var/cache/pacman/aurto/aurto.db.tar "$pkg" 2>&1); then
+      if [[ $remove_out = *"ERROR"* ]]; then
+        # may no longer be necessary as repo-remove seems to exit non-zero in this case
+        echo "aurto: $(cyan "$pkg") $(red not found)" >&2
+      else
+        rm -rf /var/cache/pacman/aurto/"$pkg"*.pkg.* || true
+        removed="$pkg $removed"
+      fi
     else
-      rm -rf /var/cache/pacman/aurto/"$pkg"*.pkg.* || true
-      removed="$pkg $removed"
+      echo "aurto: $(cyan "$pkg") $(red not found)" >&2
     fi
   done
   if [ -n "$removed" ]; then
