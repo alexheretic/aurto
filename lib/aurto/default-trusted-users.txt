@@ -18,6 +18,8 @@ lfleischer
 eworm
 daurnimator
 dbermond
+demize
+diabonas
 Dragonlord
 dvzrv
 eschwartz
@@ -34,8 +36,8 @@ jelly
 jleclanche
 jsteel
 kgizdov
+kpcyrd
 keenerd
-demize
 Lordheavy
 maximbaz
 mtorromeo
@@ -43,7 +45,6 @@ Muflone
 NicoHood
 polyzen
 sangy
-schivmeister
 schuay
 seblu
 sergej
