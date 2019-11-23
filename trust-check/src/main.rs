@@ -112,8 +112,22 @@ fn package_maintainers<T: AsRef<str>>(
         })?;
         transfer.perform()?;
     }
-
-    let mut json = json::parse(str::from_utf8(&buf)?)?;
+    let response = str::from_utf8(&buf)?;
+    let mut json = match json::parse(response) {
+        Ok(json) => json,
+        Err(_) if response.contains("Service Unavailable") => {
+            return Err("https://aur.archlinux.org/rpc - Service Unavailable".into());
+        }
+        Err(err) => {
+            let mut response_head = response;
+            if let Some((i, _)) = response.char_indices().nth(400) {
+                response_head = &response_head[..i];
+            }
+            return Err(format!("Invalid response from https://aur.archlinux.org/rpc: {} `{}...`",
+                err,
+                response_head).into());
+        }
+    };
 
     let not_in_aur: Vec<_> = {
         let in_aur: HashSet<_> = json["results"]
