@@ -61,7 +61,7 @@ echo "Running: aur sync --no-view --no-confirm --database=aurto --makepkg-conf=/
 sudo -u "$user" \
  "$lib_dir"/summerize-build \
  aur sync --no-view --no-confirm --database=aurto \
-  --makepkg-conf=/etc/aurto/makepkg-chroot.conf $chroot_arg --upgrades
+  --makepkg-conf=/etc/aurto/makepkg-chroot.conf "$chroot_arg" --upgrades
 
 if rm "$lib_dir/check-vcs" 2>/dev/null; then
   vcs_pkgs=$(aur repo --database=aurto --list | cut -f1 | grep -E "$AURVCS" || true)
