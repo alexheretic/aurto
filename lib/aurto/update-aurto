@@ -20,6 +20,17 @@ if [ -z "$user" ]; then
   exit 1
 fi
 
+## Clean aurutils cache, if no aurto-add sessions are running
+clean_aurutils_cache() {
+  user_home=$(getent passwd "$user" | cut -d: -f6)
+  aurutils_cache=$user_home/.cache/aurutils/sync/
+  if [ -d "$aurutils_cache" ] && ! compgen -G "$user_home/.cache/aurto/aurto-add.*" >/dev/null; then
+    rm -rf "$aurutils_cache"
+  fi
+}
+trap clean_aurutils_cache EXIT
+
+
 pacsync aurto >/dev/null || true
 
 ## Check trust
@@ -90,11 +101,4 @@ if [ "${after_modify:-0}" != "${modify:-0}" ]; then
   ## prompt listeners to `/var/lib/pacman/local` that something has changed
   ## E.g. RaphaelRochet/arch-update
   touch /var/lib/pacman/local/aurto-arch-update
-fi
-
-## Clean aurutils cache, if no aurto-add sessions are running
-user_home=$(getent passwd "$user" | cut -d: -f6)
-aurutils_cache=$user_home/.cache/aurutils/sync/
-if [ -d "$aurutils_cache" ] && ! compgen -G "$user_home/.cache/aurto/aurto-add.*" >/dev/null; then
-  rm -rf "$aurutils_cache"
 fi
