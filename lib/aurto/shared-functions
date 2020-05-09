@@ -20,15 +20,9 @@ else
   function rm_last_print { return; }
 fi
 
-## file /usr/lib/aurto/conf-disable-chroot can be used to disable chroot builds
-export chroot_arg='--chroot'
-if test -f /usr/lib/aurto/conf-disable-chroot; then
-  export chroot_arg=''
-fi
-
 ## Returns epoch date of the latest modified time of a aurto package
 function last_pkg_modify {
-  stat /var/cache/pacman/aurto/*.pkg.tar* -c '%Y' 2>/dev/null | sort | tail -n1 | tr -d '\n'
+  stat $1/*.pkg.tar* -c '%Y' 2>/dev/null | sort | tail -n1 | tr -d '\n'
 }
 
 ## Takes '\n' separated things and returns a ' ' separated unique sequence (no empties)
@@ -56,3 +50,61 @@ function not_in_aur_packages {
 
   echo "$packages" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' | tr -s ' '
 }
+
+## Loads a config file into bash variables
+function load_configs {
+  local CFG=${2:-CFG} 
+  local line
+  local CFGid=-1
+  local section=''
+  local key
+  local val
+  shopt -s extglob
+  
+  while read -r line; do
+    line="${line%%\#*}" # remove in line right comments
+    line="${line##*( )}" # remove leading whitespaces
+    line="${line%%*( )}" # remove trailing whitespaces
+    line="$(echo "$line" | sed 's/ *= */=/g')"
+    if [[ $line = \#* ]]; then continue; fi # ignore comments
+  
+    # check for section
+    if [[ $line =~ \[.*\] ]]; then
+      CFGid=$((CFGid+1))
+      section="$CFG$CFGid"
+      
+      #echo "declare -A $section=([\"section_name\"]=\"$(echo "$line" | tr -d '[]' )\")"
+      declare -Ag "$section=([\"section_name\"]=\"$(echo "$line" | tr -d '[]' )\")"
+      
+      continue
+    fi
+    
+    key="${line%=*}"
+    val="${line#*=}"
+    
+    if [ -z "$key" ]; then continue; fi
+
+    if [ -z "$section" ]; then
+      #echo "declare -g \"$key=$val\""
+      declare -g "$key=$val"
+    else
+      #echo "declare -Ag \"$section[$key]=$val\""
+      declare -Ag "$section[$key]=$val"
+    fi
+  done < "$1"
+  #echo "declare -g $CFG""total=$((CFGid+1))"
+  declare -g "$CFG""total=$((CFGid+1))"
+  shopt -u extglob
+}
+
+## Checks if a given string is considered true or false (canse-insensitive)
+function cfgistrue {
+  local trues=('yes' 'y' 'true' 't' 'enable' 'enabled')
+  local t=''
+  for t in "${trues[@]}"; do
+    if [ "$t" == "${1,,}" ]; then return $(true); fi
+  done
+  return $(false)
+}
+
+load_configs "/etc/aurto/aurto.conf"

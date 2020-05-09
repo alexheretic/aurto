@@ -1,5 +1,5 @@
 [Unit]
-Description=Updates 'aurto' repo
+Description=Updates aurto repos
 After=network-online.target
 Wants=network-online.target
 
