@@ -114,13 +114,12 @@ if [ "$command" == "add" ] && [ -n "$arg1" ]; then
       fi
     fi
   fi
-  islocal=$(grep -q "^Server = file://${cfg[database_dir]}$" /etc/pacman.d/aurto)
 
   packages_and_deps="${*:3}"
   for i in "${@:3}"; do
     packages_and_deps="$packages_and_deps
 $(echo "$i" | aur depends 2>/dev/null | cut -f2 | sort | comm -12 - <(aur pkglist | sort))"
-  done  
+  done
   # shellcheck disable=SC2086
   check_new_package_trust $packages_and_deps
 
