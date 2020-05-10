@@ -1,5 +1,5 @@
 [Unit]
-Description=Updates 'aurto' repo on startup
+Description=Updates aurto repos on startup
 
 [Timer]
 OnActiveSec=5s

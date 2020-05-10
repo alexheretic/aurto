@@ -2,22 +2,27 @@
 ## aurto commands, see bottom help output
 
 set -eu
-version="0.9.8"
+version="0.9.9"
 command=${1:-}
-arg1=${2:-}
-
-if [[ $EUID -eq 0 ]]; then
-  # shouldn't be run as root
-  user=$(cat /usr/lib/aurto/user)
-  exec sudo -u "$user" "$0" "$@"
-fi
+repo=${2:-}
+arg1=${3:-}
 
 bin_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 lib_dir="$bin_dir/../lib/aurto"
+PATH=$PATH:"$lib_dir"
 # shellcheck source=../lib/aurto/shared-functions disable=SC1091
 source "$lib_dir/shared-functions"
 
-function aurto_sync { sudo pacsync aurto >/dev/null; }
+if [[ $EUID -eq 0 ]]; then
+  # shouldn't be run as root
+  if [ -z "${user+x}" ] || [ -z "$(getent passwd "$user")" ]; then
+    echo $(red "Missing or invalid user on configuration file: '${user:-}'") >&2
+    exit 1
+  fi
+  
+  echo "Do not run aurto as root. Now runnig as $user" >&2
+  exec sudo -u "$user" "$0" "$@"
+fi
 
 function check_new_package_trust {
   local mistrust
@@ -30,7 +35,7 @@ function check_new_package_trust {
     echo "aurto: Checking maintainer trust... $(dim disabled)" >&2
   fi
 
-  mistrust=$("$lib_dir"/trust-check "${@:1}")
+  mistrust=$(trust-check "${@:1}")
   if [ -z "$mistrust" ]; then
     if [ -f /etc/aurto/trusted-users ]; then
       rm_last_print
@@ -59,9 +64,59 @@ function check_new_package_trust {
   fi
 }
 
+## Gets the name of the array which have a field $1 equals to the value $2
+function get_section_by_field {
+  local CFG=${3:-CFG}
+  local CFGid=-1
+  local section
+  
+  while true; do
+    CFGid=$((CFGid+1))
+    declare -n section=$CFG$CFGid
+    
+    if [ ! -v section[@] ]; then break; fi
+    
+    if [ "${section[$1]}" == "$2" ]; then
+      echo "$CFG$CFGid"
+      return
+    fi
+  done
+  echo ""
+}
+
 if [ "$command" == "add" ] && [ -n "$arg1" ]; then
-  packages_and_deps="${*:2}"
-  for i in "${@:2}"; do
+  cfg=$(get_section_by_field "section_name" "$repo")
+  if [ -z "$cfg" ]; then
+      echo "aurto: Repo not found: $(red "$repo")" >&2
+      exit 1
+  fi
+  declare -n cfg=$cfg
+  
+  chroot_arg=(--no-ver)
+  if [ -v cfg[chroot_enabled] ] && cfgistrue "${cfg[chroot_enabled]}"; then
+    chroot_arg=(--chroot)
+    if [ -v cfg[chroot_dir] ]; then
+      chroot_arg+=("--directory=${cfg[chroot_dir]}")
+    fi
+  fi
+
+  # initialize the repo if it doesn't exist
+  if [ ! -f "${cfg[database_dir]}/${cfg[database_name]}.db.tar" ]; then
+    echo "aurto: Initializing $(cyan ${cfg[database_name]}) at '$(cyan ${cfg[database_dir]})'" >&2
+    sudo install -o "$user" -d "${cfg[database_dir]}" 
+    sudo -u "$user" repo-add "${cfg[database_dir]}/${cfg[database_name]}.db.tar" 2>/dev/null
+
+    if ! grep -q "^Server = file://${cfg[database_dir]}$" /etc/pacman.d/aurto ; then
+      read -p "Add $(cyan ${cfg[database_name]}) to /etc/pacman.d/aurto? [Y/n] " -n 1 -r; echo
+      if [[ $REPLY =~ ^[Yy]$ ]]; then
+        #echo "aurto: Adding $(cyan ${cfg[database_name]}) to '$(cyan /etc/pacman.d/aurto)'" >&2
+        echo -e "[${cfg[database_name]}]\\nSigLevel = Optional TrustAll\\nServer = file://${cfg[database_dir]}" | sudo tee -a /etc/pacman.d/aurto >/dev/null
+      fi
+    fi
+  fi
+
+  packages_and_deps="${*:3}"
+  for i in "${@:3}"; do
     packages_and_deps="$packages_and_deps
 $(echo "$i" | aur depends 2>/dev/null | cut -f2 | sort | comm -12 - <(aur pkglist | sort))"
   done
@@ -73,31 +128,52 @@ $(echo "$i" | aur depends 2>/dev/null | cut -f2 | sort | comm -12 - <(aur pkglis
   aurto_add_temp=$(mktemp ~/.cache/aurto/aurto-add.XXXXXXXX)
   trap 'rm -f "$aurto_add_temp"' EXIT
 
-  aurto_sync
-  echo "aurto: Running: $(dim aur sync --no-view --no-confirm "${chroot_arg:---no-ver}" --database=aurto --makepkg-conf=/etc/aurto/makepkg-chroot.conf) $(cyan "${*:2}")" >&2
-  "$lib_dir"/summerize-build aur sync --no-view --no-confirm "${chroot_arg:---no-ver}" \
-   --database=aurto --makepkg-conf=/etc/aurto/makepkg-chroot.conf "${@:2}"
-  aurto_sync
-  echo -e "aurto: To install run: $(green pacman -Syu) $(cyan "${*:2}")" >&2
+  sudo pacsync "${cfg[database_name]}" >/dev/null || true
+  echo "aurto: Running: $(dim aur sync --no-view --no-confirm "${chroot_arg[@]}" \
+    --database="${cfg[database_name]}" --root="${cfg[database_dir]}" \
+    --makepkg-conf="${cfg[makepkg_conf]}" --pacman-conf="${cfg[pacman_conf]}") $(cyan "${*:3}")" >&2
+  summerize-build aur sync --no-view --no-confirm \
+    --database="${cfg[database_name]}" --root="${cfg[database_dir]}" \
+    --makepkg-conf="${cfg[makepkg_conf]}" --pacman-conf="${cfg[pacman_conf]}" "${chroot_arg[@]}" \
+    "${@:3}"
+  sudo pacsync "${cfg[database_name]}" >/dev/null || true
+  
+  if grep -q "^Server = file://${cfg[database_dir]}$" /etc/pacman.d/aurto ; then
+    echo -e "aurto: To install run: $(green pacman -Syu) $(cyan "${*:3}")" >&2
+  fi
 
 elif [ "$command" == "addpkg" ] && [ -n "$arg1" ]; then
-  check_new_package_trust "${@:2}"
-  echo "aurto: Running: $(dim repo-add /var/cache/pacman/aurto/aurto.db.tar) $(cyan "${*:2}")" >&2
-  "$lib_dir"/summerize-build repo-add /var/cache/pacman/aurto/aurto.db.tar "${@:2}"
-  for pkg in "${@:2}"; do
-    cp "$pkg" /var/cache/pacman/aurto/
+  cfg=$(get_section_by_field "section_name" "$repo")
+  if [ -z "$cfg" ]; then
+      echo "aurto: Repo not found: $(red "$repo")" >&2
+      exit 1
+  fi
+  declare -n cfg=$cfg
+
+  check_new_package_trust "${@:3}"
+  echo "aurto: Running: $(dim repo-add "${cfg[database_dir]}/${cfg[database_name]}.db.tar") $(cyan "${*:3}")" >&2
+  summerize-build repo-add "${cfg[database_dir]}/${cfg[database_name]}.db.tar" "${@:3}"
+  for pkg in "${@:3}"; do
+    cp "$pkg" "${cfg[database_dir]}/"
   done
-  aurto_sync
+  sudo pacsync "${cfg[database_name]}" >/dev/null || true
 
 elif [ "$command" == "remove" ] && [ -n "$arg1" ]; then
+  cfg=$(get_section_by_field "section_name" "$repo")
+  if [ -z "$cfg" ]; then
+      echo "aurto: Repo not found: $(red "$repo")" >&2
+      exit 1
+  fi
+  declare -n cfg=$cfg
+  
   removed=""
-  for pkg in "${@:2}"; do
-    if remove_out=$(repo-remove /var/cache/pacman/aurto/aurto.db.tar "$pkg" 2>&1); then
+  for pkg in "${@:3}"; do
+    if remove_out=$(repo-remove "${cfg[database_dir]}/${cfg[database_name]}.db.tar" "$pkg" 2>&1); then
       if [[ $remove_out = *"ERROR"* ]]; then
         # may no longer be necessary as repo-remove seems to exit non-zero in this case
         echo "aurto: $(cyan "$pkg") $(red not found)" >&2
       else
-        rm -rf /var/cache/pacman/aurto/"$pkg"*.pkg.* || true
+        rm -rf "${cfg[database_dir]}/$pkg"*.pkg.* || true
         removed="$pkg $removed"
       fi
     else
@@ -106,7 +182,7 @@ elif [ "$command" == "remove" ] && [ -n "$arg1" ]; then
   done
   if [ -n "$removed" ]; then
     echo -e "aurto: Removed $(cyan "$removed")" >&2
-    aurto_sync
+    sudo pacsync "${cfg[database_name]}" >/dev/null || true
   fi
 
 elif [ "$command" == "status" ]; then
@@ -147,18 +223,18 @@ elif [ "$command" == "status" ]; then
   fi
 
 else
-  echo "$(bold aurto) v$version: simple management tool for the 'aurto' repository"
-  echo "  General usage: $(green aurto add)|$(green addpkg)|$(green remove) $(cyan PACKAGES...)"
+  echo "$(bold aurto) v$version: simple management tool for the local repositories"
+  echo "  General usage: $(green aurto add)|$(green addpkg)|$(green remove) $(cyan REPO PACKAGES...)"
   echo
   echo "  Examples"
   echo "  - add: build aur packages & dependencies, add them to the 'aurto' repo"
-  echo "      $(green aurto add) $(cyan aurutils)"
+  echo "      $(green aurto add) $(cyan aurto aurutils)"
   echo
   echo "  - remove: remove packages from the 'aurto' repo (does not uninstall)"
-  echo "      $(green aurto remove) $(cyan aurutils)"
+  echo "      $(green aurto remove) $(cyan aurto aurutils)"
   echo
   echo "  - addpkg: add a prebuilt package to the 'aurto' repo"
-  echo "      $(green aurto addpkg) $(cyan aurutils-2.3.1-1-any.pkg.tar.xz)"
+  echo "      $(green aurto addpkg) $(cyan aurto aurutils-2.3.1-1-any.pkg.tar.xz)"
   echo
   echo "  - status: current 'aurto' repo packages, logs & info"
   echo "      $(green aurto status)"

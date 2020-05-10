@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-## Builds new aur packages into repo 'aurto' (run as root)
-## Should be in the same dir as `check-aurto-git`
+## Updates aur packages of all repos (run as root)
+
 set -eu
 
 readonly AURVCS=${AURVCS:-.*-(bzr|git|hg|svn)$}
@@ -11,12 +11,12 @@ if [[ $EUID -ne 0 ]]; then
 fi
 
 lib_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-user=$(cat /usr/lib/aurto/user)
+PATH=$PATH:"$lib_dir"
 # shellcheck source=./shared-functions disable=SC1091
 source "$lib_dir/shared-functions"
 
-if [ -z "$user" ]; then
-  echo 'Missing /usr/lib/aurto/user' >&2
+if [ -z "${user+x}" ] || [ -z "$(getent passwd $user)" ]; then
+  echo $(red "Missing or invalid user on configuration file: '${user:-}'") >&2
   exit 1
 fi
 
@@ -30,75 +30,97 @@ clean_aurutils_cache() {
 }
 trap clean_aurutils_cache EXIT
 
+# repo's loop
+CFGid=0
+while declare -n cfg=CFG$CFGid &&  [ -v cfg[@] ] && CFGid=$((CFGid+1)); do
+  # skip if not to update
+  if ! ([ -v cfg[update_enable] ] && cfgistrue "${cfg[update_enable]}"); then
+    echo $(dim aurto: Skipping disabled repo: ${cfg[database_name]})
+    continue
+  elif [ ! -f "${cfg[database_dir]}/${cfg[database_name]}.db.tar" ]; then
+    echo "aurto: Skipping no repo $(red ${cfg[database_name]}) found at '$(red ${cfg[database_name]})'"
+    continue
+  fi
+  echo "aurto: Checking $(bold ${cfg[database_name]}) repo"
 
-pacsync aurto >/dev/null || true
+  pacsync "${cfg[database_name]}" >/dev/null || true
 
-## Check trust
-## - remove packages no longer in the AUR
-## - remove packages with maintainers lacking trust
-if [ -f /etc/aurto/trusted-users ]; then
-  echo "aurto: Checking maintainer trust..." >&2
-else
-  echo "aurto: Checking maintainer trust... $(dim disabled)" >&2
-fi
-# shellcheck disable=SC2046
-mistrust=$("$lib_dir"/trust-check $(pacman -Slq aurto))
-if [ -z "$mistrust" ]; then
+  ## Check trust
+  ## - remove packages no longer in the AUR
+  ## - remove packages with maintainers lacking trust
   if [ -f /etc/aurto/trusted-users ]; then
-    rm_last_print
-    echo "Checking maintainer trust... $(green ✓)" >&2
+    echo "aurto: Checking maintainer trust..." >&2
+  else
+    echo "aurto: Checking maintainer trust... $(dim disabled)" >&2
   fi
-else
-  not_in_aur=$(not_in_aur_packages "$mistrust")
-  mistrusted_pkgs=$(new_line_to_space_separated_unique "$(echo "$mistrust" | grep -v '::' | cut -d: -f1)")
+  # shellcheck disable=SC2046
+  mistrust=$(trust-check $(aur repo --database="${cfg[database_name]}" --root="${cfg[database_dir]}" --list | cut -f1))
+  if [ -z "$mistrust" ]; then
+    if [ -f /etc/aurto/trusted-users ]; then
+      rm_last_print
+      echo "Checking maintainer trust... $(green ✓)" >&2
+    fi
+  else
+    not_in_aur=$(not_in_aur_packages "$mistrust")
+    mistrusted_pkgs=$(new_line_to_space_separated_unique "$(echo "$mistrust" | grep -v '::' | cut -d: -f1)")
 
-  if [ -n "$not_in_aur" ]; then
-    rm_last_print
-    # shellcheck disable=SC2086
-    aurto remove $not_in_aur
-    echo "$(yellow WARNING:) Packages no longer in AUR removed from aurto: $(yellow "$not_in_aur")" >&2
-  fi
-  if [ -n "$mistrusted_pkgs" ]; then
-    # shellcheck disable=SC2086
-    aurto remove $mistrusted_pkgs
-    echo -n "$(yellow WARNING:) Packages with unknown maintainers removed from aurto, " >&2
-    echo "re-add with: $(green aurto add) $(cyan "$mistrusted_pkgs")" >&2
-  fi
-fi
-
-modify=$(last_pkg_modify)
-
-echo "Running: aur sync --no-view --no-confirm --database=aurto --makepkg-conf=/etc/aurto/makepkg-chroot.conf $chroot_arg --upgrades" >&2
-sudo -u "$user" \
- "$lib_dir"/summerize-build \
- aur sync --no-view --no-confirm --database=aurto \
-  --makepkg-conf=/etc/aurto/makepkg-chroot.conf "$chroot_arg" --upgrades
-
-if rm "$lib_dir/check-vcs" 2>/dev/null; then
-  vcs_pkgs=$(aur repo --database=aurto --list | cut -f1 | grep -E "$AURVCS" || true)
-  if [ -n "$vcs_pkgs" ]; then
-    echo "Checking $(echo "$vcs_pkgs" | wc -l) VCS packages matching $(yellow "$AURVCS") for updates..." >&2
-    # init vcs sync cache
-    sudo -u "$user" \
-     aur sync "$vcs_pkgs" \
-     --no-ver-shallow --print >/dev/null 2>&1
-
-    mapfile -t git_outdated < <(sudo -u "$user" aur vercmp-devel --database=aurto | cut -d: -f1)
-    if [ ${#git_outdated[@]} -gt 0 ]; then
-      sudo -u "$user" aurto remove "${git_outdated[@]}"
-      sudo -u "$user" aurto add "${git_outdated[@]}"
-    else
-      echo " VCS packages up to date $(green ✓)" >&2
+    if [ -n "$not_in_aur" ] && [ -v cfg[delete_not_in_aur] ] && cfgistrue "${cfg[delete_not_in_aur]}"; then
+      rm_last_print
+      # shellcheck disable=SC2086
+      aurto remove "${cfg[database_name]}"  $not_in_aur
+      echo "$(yellow WARNING:) Packages no longer in AUR removed from aurto: $(yellow "$not_in_aur")" >&2
+    fi
+    if [ -n "$mistrusted_pkgs" ] && [ -v cfg[delete_mistrusted] ] && cfgistrue "${cfg[delete_mistrusted]}"; then
+      # shellcheck disable=SC2086
+      aurto remove "${cfg[database_name]}" $mistrusted_pkgs
+      echo -n "$(yellow WARNING:) Packages with unknown maintainers removed from aurto, " >&2
+      echo "re-add with: $(green aurto add) $(cyan "$mistrusted_pkgs")" >&2
     fi
   fi
-fi
 
-pacsync aurto || true
-paccache -rk1 -c /var/cache/pacman/aurto
+  modify=$(last_pkg_modify "${cfg[database_dir]}")
 
-after_modify=$(last_pkg_modify)
-if [ "${after_modify:-0}" != "${modify:-0}" ]; then
-  ## prompt listeners to `/var/lib/pacman/local` that something has changed
-  ## E.g. RaphaelRochet/arch-update
-  touch /var/lib/pacman/local/aurto-arch-update
-fi
+  chroot_arg=(--no-ver)
+  if [ -v cfg[chroot_enabled] ] && cfgistrue "${cfg[chroot_enabled]}"; then
+    chroot_arg=(--chroot)
+    if [ -v cfg[chroot_dir] ]; then
+      chroot_arg+=("--directory=${cfg[chroot_dir]}")
+    fi
+  fi
+
+  echo "Running: aur sync --no-view --no-confirm --database=${cfg[database_name]} --root=${cfg[database_dir]} --makepkg-conf=${cfg[makepkg_conf]} --pacman-conf=${cfg[pacman_conf]} ${chroot_arg[@]} --upgrades" >&2
+  sudo -u "$user" summerize-build aur sync --no-view --no-confirm  \
+    --database="${cfg[database_name]}" --root="${cfg[database_dir]}" \
+    --makepkg-conf="${cfg[makepkg_conf]}" --pacman-conf="${cfg[pacman_conf]}" "${chroot_arg[@]}" \
+    --upgrades
+
+  if rm "$lib_dir/check-vcs" 2>/dev/null; then
+    vcs_pkgs=$(aur repo --database="${cfg[database_name]}" --root="${cfg[database_dir]}" --list | cut -f1 | grep -E "$AURVCS" || true)
+    if [ -n "$vcs_pkgs" ]; then
+      echo "Checking $(echo "$vcs_pkgs" | wc -l) VCS packages matching $(yellow "$AURVCS") for updates..." >&2
+      # init vcs sync cache
+      sudo -u "$user" \
+        aur sync "$vcs_pkgs" \
+        --no-ver-shallow --print >/dev/null 2>&1 # TODO --no-ver-shallow: can't find info regarding this
+
+      mapfile -t git_outdated < <(sudo -u "$user" aur vercmp-devel --database="${cfg[database_name]}" --root="${cfg[database_dir]}" | cut -d: -f1) # TODO vercmp-devel: can't find info regarding this
+      if [ ${#git_outdated[@]} -gt 0 ]; then
+        sudo -u "$user" aurto "${cfg[database_name]}" remove "${git_outdated[@]}"
+        sudo -u "$user" aurto "${cfg[database_name]}" add "${git_outdated[@]}"
+      else
+        echo " VCS packages up to date $(green ✓)" >&2
+      fi
+    fi
+  fi
+
+  pacsync "${cfg[database_name]}" >/dev/null || true
+  paccache -rk1 -c "${cfg[database_dir]}"
+
+  after_modify=$(last_pkg_modify "${cfg[database_dir]}")
+  if [ "${after_modify:-0}" != "${modify:-0}" ]; then
+    ## prompt listeners to `/var/lib/pacman/local` that something has changed
+    ## E.g. RaphaelRochet/arch-update
+    touch /var/lib/pacman/local/aurto-arch-update 
+  fi
+
+done
