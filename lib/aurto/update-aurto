@@ -37,9 +37,12 @@ while declare -n cfg=CFG$CFGid &&  [ -v cfg[@] ] && CFGid=$((CFGid+1)); do
   if ! ([ -v cfg[update_enable] ] && cfgistrue "${cfg[update_enable]}"); then
     echo $(dim aurto: Skipping disabled repo: ${cfg[database_name]})
     continue
+  elif [ ! -f "${cfg[database_dir]}/${cfg[database_name]}.db.tar" ]; then
+    echo "aurto: Skipping no repo $(red ${cfg[database_name]}) found at '$(red ${cfg[database_name]})'"
+    continue
   fi
-  echo "aurto: Checking repo: ${cfg[database_name]}"
-  
+  echo "aurto: Checking $(bold ${cfg[database_name]}) repo"
+
   pacsync "${cfg[database_name]}" >/dev/null || true
 
   ## Check trust
