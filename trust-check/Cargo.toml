@@ -10,3 +10,5 @@ json = "0.12"
 
 [profile.release]
 lto = true
+panic = "abort"
+opt-level = "s"
