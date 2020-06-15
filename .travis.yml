@@ -1,8 +1,0 @@
-language: rust
-
-before_install:
-# install shellcheck
-- wget -c https://goo.gl/ZzKHFv -O - | tar -xvJ -C /tmp/
-- PATH="/tmp/shellcheck-latest:$PATH"
-
-script: ./test

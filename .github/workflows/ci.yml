@@ -1,0 +1,17 @@
+name: Test
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - run: rustup update stable
+    - run: wget -c https://github.com/koalaman/shellcheck/releases/download/latest/shellcheck-latest.linux.x86_64.tar.xz -O - | tar -xvJ -C /tmp/
+    - uses: actions/checkout@v2
+    - name: ./test
+      run: PATH="/tmp/shellcheck-latest:$PATH" ./test
