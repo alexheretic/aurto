@@ -76,7 +76,7 @@ WARNING: Packages with unknown maintainers removed from aurto, ...
 ```
 If desired such packages can be re-added and the new maintainers added to the local trusted users.
 
-Local trusted users are stored in `/etc/aurto/trusted-users` initially populated with the [Arch Linux Trusted Users](https://wiki.archlinux.org/index.php/Trusted_Users#Active_Trusted_Users) & me.
+Local trusted users are stored in `/etc/aurto/trusted-users` initially populated with the aurutils & aurto maintainers.
 
 Clear `/etc/aurto/trusted-users` to trust no-one.<br/>
 Remove `/etc/aurto/trusted-users` to trust everyone.
