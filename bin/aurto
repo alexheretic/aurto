@@ -64,6 +64,44 @@ function check_new_package_trust {
   fi
 }
 
+echo_status() {
+  echo "$(bold aurto) v$version managing $(bold "$(pacman -Sql aurto | wc -l)") aur packages"
+
+  echo
+  echo "Packages: $(dim pacman -Sl aurto)"
+  pacman -Sl aurto --color=always \
+   | sed 's/^/  /'
+
+  echo
+  echo "Timers: $(dim systemctl list-timers)"
+  list_timers=$(systemctl list-timers -a)
+  echo "  $(echo "$list_timers" | head -n1 | cut -c1-"$COLUMNS")"
+  echo "$list_timers" \
+   | grep -E 'aurto' \
+   | sed 's/^/  /' \
+   | cut -c1-"$COLUMNS"
+
+  echo
+  echo "Recent logs: $(dim journalctl -eu update-aurto --since \'1.5 hours ago\')"
+  journalctl -eu update-aurto --since '1.5 hours ago' \
+   | sed 's/^/  /' \
+   | cut -c1-"$COLUMNS"
+
+  echo
+  echo "Log warnings: $(dim journalctl -eu update-aurto --since \'1 week ago\' \| grep -v \'Skipping all source file integrity\' \|  grep -E \'ERROR\|WARNING\' -A5 -B5)"
+  log_warns=$(
+    journalctl -eu update-aurto --since '1 week ago' \
+     | grep -v 'Skipping all source file integrity' \
+     | grep -E 'ERROR|WARNING' -A5 -B5 --color=always \
+     | sed 's/^/  /'
+  )
+  if [ -n "$log_warns" ]; then
+    echo "$log_warns" | cut -c1-"$COLUMNS"
+  else
+    green '  None'
+  fi
+}
+
 if [ "$command" == "add" ] && [ -n "$arg1" ]; then
   packages_and_deps="${*:2}"
   for i in "${@:2}"; do
@@ -115,42 +153,7 @@ elif [ "$command" == "remove" ] && [ -n "$arg1" ]; then
   fi
 
 elif [ "$command" == "status" ]; then
-  echo "$(bold aurto) v$version managing $(bold "$(pacman -Sql aurto | wc -l)") aur packages"
-
-  echo
-  echo "Packages: $(dim pacman -Sl aurto)"
-  pacman -Sl aurto --color=always \
-   | sed 's/^/  /'
-
-  echo
-  echo "Timers: $(dim systemctl list-timers)"
-  list_timers=$(systemctl list-timers -a)
-  echo "  $(echo "$list_timers" | head -n1 | cut -c1-"$COLUMNS")"
-  echo "$list_timers" \
-   | grep -E 'aurto' \
-   | sed 's/^/  /' \
-   | cut -c1-"$COLUMNS"
-
-  echo
-  echo "Recent logs: $(dim journalctl -eu update-aurto --since \'1.5 hours ago\')"
-  journalctl -eu update-aurto --since '1.5 hours ago' \
-   | sed 's/^/  /' \
-   | cut -c1-"$COLUMNS"
-
-  echo
-  echo "Log warnings: $(dim journalctl -eu update-aurto --since \'1 week ago\' \| grep -v \'Skipping all source file integrity\' \|  grep -E \'ERROR\|WARNING\' -A5 -B5)"
-  log_warns=$(
-    journalctl -eu update-aurto --since '1 week ago' \
-     | grep -v 'Skipping all source file integrity' \
-     | grep -E 'ERROR|WARNING' -A5 -B5 --color=always \
-     | sed 's/^/  /'
-  )
-  if [ -n "$log_warns" ]; then
-    echo "$log_warns" | cut -c1-"$COLUMNS"
-  else
-    green '  None'
-  fi
-
+  echo_status | less -RF
 elif [[ $command == "init" ]]; then
   shift
   /usr/lib/aurto/install "$@"
