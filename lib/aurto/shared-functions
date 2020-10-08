@@ -56,3 +56,7 @@ function not_in_aur_packages {
 
   echo "$packages" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' | tr -s ' '
 }
+
+function initialised {
+  grep -q '^Include = /etc/pacman.d/aurto$' /etc/pacman.conf
+}

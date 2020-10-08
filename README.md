@@ -27,6 +27,11 @@ cd aurto
 makepkg -srci
 ```
 
+Initialise the aurto repo & systemd timers.
+```sh
+aurto init
+```
+
 Recommended: Add **aurto** to the 'aurto' repo to provide self updates.
 ```sh
 aurto add aurto
