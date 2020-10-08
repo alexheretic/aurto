@@ -17,6 +17,11 @@ lib_dir="$bin_dir/../lib/aurto"
 # shellcheck source=../lib/aurto/shared-functions disable=SC1091
 source "$lib_dir/shared-functions"
 
+if [[ $command != "init" ]] && ! initialised; then
+  echo "aurto not intialised. Run $(green aurto init)"
+  exit 1
+fi
+
 function aurto_sync { sudo pacsync aurto >/dev/null; }
 
 function check_new_package_trust {
@@ -146,6 +151,9 @@ elif [ "$command" == "status" ]; then
     green '  None'
   fi
 
+elif [[ $command == "init" ]]; then
+  shift
+  /usr/lib/aurto/install "$@"
 else
   echo "$(bold aurto) v$version: simple management tool for the 'aurto' repository"
   echo "  General usage: $(green aurto add)|$(green addpkg)|$(green remove) $(cyan PACKAGES...)"
