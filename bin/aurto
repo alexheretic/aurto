@@ -153,6 +153,7 @@ elif [ "$command" == "remove" ] && [ -n "$arg1" ]; then
   fi
 
 elif [ "$command" == "status" ]; then
+  aurto_sync
   echo_status | less -RF
 elif [[ $command == "init" ]]; then
   shift
