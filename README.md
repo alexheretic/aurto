@@ -87,7 +87,8 @@ Clear `/etc/aurto/trusted-users` to trust no-one.<br/>
 Remove `/etc/aurto/trusted-users` to trust everyone.
 
 # Config
-**aurto** builds packages in a chroot using `/etc/aurto/makepkg-chroot.conf`. This can be customized in the same way as the main _makepkg.conf_, for example to change compression.
+**aurto** builds packages in a chroot using `/etc/aurto/makepkg-chroot.conf` &  `/etc/aurto/pacman-chroot.conf`.
+These can be customized in the same way as the main _makepkg.conf, pacman.conf_, for example to change compression. 
 
 # Limitations & Security
 **aurto** automatically builds and regularly re-builds updated remote code from the aur.
