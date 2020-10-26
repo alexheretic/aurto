@@ -9,6 +9,7 @@ all:
 	@install -Dm440 conf/50_aurto_passwordless -t target/etc/sudoers.d
 	@chmod 750 target/etc/sudoers.d
 	@install -Dm644 conf/makepkg-chroot.conf -t target/etc/aurto
+	@install -Dm644 conf/pacman-chroot.conf -t target/etc/aurto
 
 	@install -D bin/* -t target$(PREFIX)/bin
 	@install -D lib/aurto/* -t target$(PREFIX)/lib/aurto

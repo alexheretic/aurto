@@ -117,9 +117,12 @@ $(echo "$i" | aur depends 2>/dev/null | cut -f2 | sort | comm -12 - <(aur pkglis
   trap 'rm -f "$aurto_add_temp"' EXIT
 
   aurto_sync
-  echo "aurto: Running: $(dim aur sync --no-view --no-confirm "${chroot_arg:---no-ver}" --database=aurto --makepkg-conf=/etc/aurto/makepkg-chroot.conf) $(cyan "${*:2}")" >&2
+  echo "aurto: Running: $(dim aur sync --no-view --no-confirm "${chroot_arg:---no-ver}" \
+    --database=aurto --makepkg-conf=/etc/aurto/makepkg-chroot.conf \
+    --pacman-conf=/etc/aurto/pacman-chroot.conf) $(cyan "${*:2}")" >&2
   "$lib_dir"/summerize-build aur sync --no-view --no-confirm "${chroot_arg:---no-ver}" \
-   --database=aurto --makepkg-conf=/etc/aurto/makepkg-chroot.conf "${@:2}"
+    --database=aurto --makepkg-conf=/etc/aurto/makepkg-chroot.conf \
+    --pacman-conf=/etc/aurto/pacman-chroot.conf "${@:2}"
   aurto_sync
   echo -e "aurto: To install run: $(green pacman -Syu) $(cyan "${*:2}")" >&2
 

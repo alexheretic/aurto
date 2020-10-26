@@ -68,11 +68,14 @@ fi
 
 modify=$(last_pkg_modify)
 
-echo "Running: aur sync --no-view --no-confirm --database=aurto --makepkg-conf=/etc/aurto/makepkg-chroot.conf $chroot_arg --upgrades" >&2
+echo "Running: aur sync --no-view --no-confirm --database=aurto\
+ --makepkg-conf=/etc/aurto/makepkg-chroot.conf $chroot_arg\
+ --pacman-conf=/etc/aurto/pacman-chroot.conf --upgrades" >&2
 sudo -u "$user" \
  "$lib_dir"/summerize-build \
  aur sync --no-view --no-confirm --database=aurto \
-  --makepkg-conf=/etc/aurto/makepkg-chroot.conf "$chroot_arg" --upgrades
+  --makepkg-conf=/etc/aurto/makepkg-chroot.conf "$chroot_arg" \
+  --pacman-conf=/etc/aurto/pacman-chroot.conf --upgrades
 
 if rm "$lib_dir/check-vcs" 2>/dev/null; then
   vcs_pkgs=$(aur repo --database=aurto --list | cut -f1 | grep -E "$AURVCS" || true)
@@ -81,7 +84,7 @@ if rm "$lib_dir/check-vcs" 2>/dev/null; then
     # init vcs sync cache (aurutils v3 args with ||-fallback to v2 args)
     sudo -u "$user" \
      aur sync "$vcs_pkgs" \
-      --no-ver --no-build --no-view --database=aurto >/dev/null 2>&1 \
+      --no-ver-argv --no-build --no-view --database=aurto >/dev/null 2>&1 \
     || sudo -u "$user" \
      aur sync "$vcs_pkgs" \
       --no-ver-shallow --print --database=aurto >/dev/null 2>&1
