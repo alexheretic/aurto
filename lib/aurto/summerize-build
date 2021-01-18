@@ -25,6 +25,8 @@ echo
       subactivity="${line:5}"
     elif [[ $line = *"there is nothing to do" ]]; then
       subactivity="there is nothing to do"
+    else
+      subactivity=${line##*( )}
     fi
 
     if [[ $last_echo != " $activity $subactivity" ]]; then
