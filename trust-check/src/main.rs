@@ -32,11 +32,16 @@ fn main() -> Res<()> {
     }
 
     if packages.is_empty() || packages.iter().any(|p| p.starts_with('-')) {
-        return print_help();
+        print_help();
+        return Ok(());
     }
 
     let trust_everyone = !Path::new(LOCAL_TRUST_PATH).is_file();
-    let trusted = if trust_everyone { HashSet::new() } else { local_trusted_users()? };
+    let trusted = if trust_everyone {
+        HashSet::new()
+    } else {
+        local_trusted_users()?
+    };
 
     let (pkg_maintainers, not_in_aur) = package_maintainers(&packages)?;
 
@@ -123,9 +128,11 @@ fn package_maintainers<T: AsRef<str>>(
             if let Some((i, _)) = response.char_indices().nth(400) {
                 response_head = &response_head[..i];
             }
-            return Err(format!("Invalid response from https://aur.archlinux.org/rpc: {} `{}...`",
-                err,
-                response_head).into());
+            return Err(format!(
+                "Invalid response from https://aur.archlinux.org/rpc: {} `{}...`",
+                err, response_head
+            )
+            .into());
         }
     };
 
@@ -176,10 +183,9 @@ fn uri_encode_pkg(pkg_name: &str) -> Cow<'_, str> {
     }
 }
 
-fn print_help() -> Result<(), Box<dyn Error>> {
+fn print_help() {
     eprintln!("trust-check: output aurto-untrusted package:maintainer");
     eprintln!("  Usage: trust-check PACKAGES...");
-    Ok(())
 }
 
 #[test]
