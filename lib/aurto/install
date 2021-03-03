@@ -13,6 +13,15 @@ source "$lib_dir/shared-functions"
 # Initialise the aurto repo, trusted-users list & systemd timers
 init() {
   echo "aurto: Initialising for user: $user"
+
+  # Ensure $user is in `wheel`. This is required for update-aurto passwordless sudo to work.
+  groups=$(groups "$user")
+  if [[ $groups != "wheel "* ]] && [[ $groups != *" wheel "* ]] && [[ $groups != *" wheel" ]]; then
+    echo -ne "aurto: $(red user is not in group \`wheel\`), this is required for auto updating." >&2
+    echo -e " Add with: $(cyan usermod -aG wheel "$user")" >&2
+    exit 2
+  fi
+
   echo "$user" > /usr/lib/aurto/user
   chmod 700 /usr/lib/aurto/user
 
@@ -28,8 +37,6 @@ init() {
   systemctl enable --now /usr/lib/systemd/system/check-aurto-git-trigger.timer
   systemctl enable --now /usr/lib/systemd/system/update-aurto.timer
   systemctl enable /usr/lib/systemd/system/update-aurto-startup.timer
-
-  echo "aurto: Passwordless usage available for \`wheel\` group"
 
   echo "\"Include = /etc/pacman.d/aurto\" must be added to /etc/pacman.conf to enable the aurto repo"
   if test -t 1; then
