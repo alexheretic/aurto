@@ -8,8 +8,13 @@ arg1=${2:-}
 
 if [[ $EUID -eq 0 ]]; then
   # shouldn't be run as root
-  user=$(cat /usr/lib/aurto/user)
-  exec sudo -u "$user" "$0" "$@"
+  if [ -f /usr/lib/aurto/user ]; then
+    user=$(cat /usr/lib/aurto/user)
+    exec sudo -u "$user" "$0" "$@"
+  else
+    echo "aurto not intialised. Run $(green aurto init) as a non-root user"
+    exit 1
+  fi
 fi
 
 bin_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
