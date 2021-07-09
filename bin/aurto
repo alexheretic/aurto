@@ -2,7 +2,7 @@
 ## aurto commands, see bottom help output
 
 set -eu
-version="0.10.7"
+version="0.10.8"
 command=${1:-}
 arg1=${2:-}
 
