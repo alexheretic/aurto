@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 ## aurto commands, see bottom help output
 
-set -eu
+set -Eeuo pipefail
 version="0.10.8"
 command=${1:-}
 arg1=${2:-}
@@ -108,11 +108,7 @@ echo_status() {
 }
 
 if [ "$command" == "add" ] && [ -n "$arg1" ]; then
-  packages_and_deps="${*:2}"
-  for i in "${@:2}"; do
-    packages_and_deps="$packages_and_deps
-$(echo "$i" | aur depends 2>/dev/null | cut -f2 | sort | comm -12 - <(aur pkglist | sort))"
-  done
+  packages_and_deps="$(aur depends "${@:2}")"
   # shellcheck disable=SC2086
   check_new_package_trust $packages_and_deps
 
