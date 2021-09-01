@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 ## Builds new aur packages into repo 'aurto' (run as root)
 ## Should be in the same dir as `check-aurto-git`
-set -eu
+set -Eeuo pipefail
 
 readonly AURVCS=${AURVCS:-.*-(cvs|svn|git|hg|bzr|darcs)$}
 
@@ -28,7 +28,7 @@ clean_aurutils_cache() {
     rm -rf "$aurutils_cache"
   fi
 }
-trap clean_aurutils_cache EXIT
+trap clean_aurutils_cache ERR
 
 
 pacsync aurto >/dev/null || true
