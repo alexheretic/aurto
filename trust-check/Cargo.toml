@@ -3,6 +3,7 @@ name = "trust-check"
 version = "0.1.0"
 authors = ["Alex Butler <alexheretic@gmail.com>"]
 edition = "2018"
+publish = false
 
 [dependencies]
 curl = "0.4"
