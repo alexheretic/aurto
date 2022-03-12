@@ -121,7 +121,7 @@ if [ "$command" == "add" ] && [ -n "$arg1" ]; then
   echo "aurto: Running: $(dim aur sync --no-view --no-confirm "${chroot_arg:---no-ver}" \
     --database=aurto --makepkg-conf=/etc/aurto/makepkg-chroot.conf \
     --pacman-conf=/etc/aurto/pacman-chroot.conf) -k0 $(cyan "${*:2}")" >&2
-  AUR_SYNC_USE_NINJA=1 aur sync --no-view --no-confirm "${chroot_arg:---no-ver}" \
+  AUR_SYNC_USE_NINJA=${AUR_SYNC_USE_NINJA:-1} aur sync --no-view --no-confirm "${chroot_arg:---no-ver}" \
     --database=aurto --makepkg-conf=/etc/aurto/makepkg-chroot.conf \
     --pacman-conf=/etc/aurto/pacman-chroot.conf -k0 "${@:2}"
   aurto_sync

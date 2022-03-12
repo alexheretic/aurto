@@ -14,7 +14,8 @@ depends=('aurutils'
          'pacman-contrib'
          'curl'
          'less'
-         'sudo')
+         'sudo'
+         'ninja')
 optdepends=()
 makedepends=('cargo')
 install="aurto.install"
