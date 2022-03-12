@@ -7,7 +7,7 @@
 //!
 //! If package is not found in the AUR will output PACKAGE_NAME::not-in-aur
 use std::{
-    alloc::System, borrow::Cow, collections::HashSet, env, error::Error, ffi::OsStr, fs,
+    alloc::System, borrow::Cow, collections::HashSet, env, error::Error, ffi::OsStr, fs, io::Read,
     path::Path, str,
 };
 
@@ -16,7 +16,6 @@ static GLOBAL: System = System;
 
 type Res<T> = Result<T, Box<dyn Error>>;
 
-const AURWEB_INFO: &str = "https://aur.archlinux.org/rpc?v=5&type=info";
 const LOCAL_TRUST_PATH: &str = "/etc/aurto/trusted-users";
 
 fn main() -> Res<()> {
@@ -93,24 +92,29 @@ struct MaintainedPackage {
 fn package_maintainers<T: AsRef<str>>(
     packages: &[T],
 ) -> Res<(Vec<MaintainedPackage>, Vec<String>)> {
-    let url = {
-        let mut url = AURWEB_INFO.to_owned();
+    const AURWEB_RPC: &str = "https://aur.archlinux.org/rpc";
+
+    let payload = {
+        let mut payload = String::from("v=5&type=info");
         for pkg in packages
             .iter()
             .flat_map(|p| p.as_ref().split('\n'))
             .map(str::trim)
             .filter(|p| !p.is_empty())
         {
-            url = url + "&arg[]=" + &uri_encode_pkg(valid_arch_package_name(pkg)?);
+            payload = payload + "&arg[]=" + &uri_encode_pkg(valid_arch_package_name(pkg)?);
         }
-        url
+        payload
     };
 
     let mut buf = Vec::new();
     {
         let mut handle = curl::easy::Easy::new();
-        handle.url(&url)?;
+        handle.url(AURWEB_RPC)?;
+        handle.post(true)?;
+        let mut payload_bytes = payload.as_bytes();
         let mut transfer = handle.transfer();
+        transfer.read_function(|into| Ok(payload_bytes.read(into).unwrap()))?;
         transfer.write_function(|data| {
             buf.extend_from_slice(data);
             Ok(data.len())
@@ -121,18 +125,16 @@ fn package_maintainers<T: AsRef<str>>(
     let mut json = match json::parse(response) {
         Ok(json) => json,
         Err(_) if response.contains("Service Unavailable") => {
-            return Err("https://aur.archlinux.org/rpc - Service Unavailable".into());
+            return Err(format!("{AURWEB_RPC} - Service Unavailable").into());
         }
         Err(err) => {
             let mut response_head = response;
             if let Some((i, _)) = response.char_indices().nth(400) {
                 response_head = &response_head[..i];
             }
-            return Err(format!(
-                "Invalid response from https://aur.archlinux.org/rpc: {} `{}...`",
-                err, response_head
-            )
-            .into());
+            return Err(
+                format!("Invalid response from {AURWEB_RPC}: {err} `{response_head}...`").into(),
+            );
         }
     };
 
