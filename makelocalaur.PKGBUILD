@@ -4,7 +4,7 @@ pkgname=aurto
 pkgver=###VERSION
 pkgrel=999
 pkgdesc="A simple aur tool for managing a local 'aurto' repository"
-arch=('any')
+arch=('x86_64' 'aarch64' 'armv7h')
 url="https://github.com/alexheretic/aurto"
 license=('MIT')
 depends=('aurutils'
@@ -14,7 +14,8 @@ depends=('aurutils'
          'pacman-contrib'
          'curl'
          'less'
-         'sudo')
+         'sudo'
+         'ninja')
 optdepends=()
 makedepends=('cargo')
 install="aurto.install"
@@ -23,6 +24,7 @@ sha256sums=('eb94c0a2920ddea570621da7326f3d60c30401e8c42073b5b3ed3b1216c1ce4b')
 backup=('usr/lib/systemd/system/check-aurto-git-trigger.timer'
         'usr/lib/systemd/system/update-aurto.timer'
         'usr/lib/systemd/system/update-aurto-startup.timer'
+        'etc/aurto/pacman-chroot.conf'
         'etc/aurto/makepkg-chroot.conf')
 
 build() {
