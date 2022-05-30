@@ -89,7 +89,7 @@ if rm "$lib_dir/check-vcs" 2>/dev/null; then
      aur sync "$vcs_pkgs" \
       --no-ver-shallow --print --database=aurto >/dev/null 2>&1
 
-    mapfile -t git_outdated < <(sudo -u "$user" "$lib_dir"/aur-vercmp-devel --database=aurto | cut -d: -f1)
+    mapfile -t git_outdated < <(sudo -u "$user" "$lib_dir"/aur-vercmp-devel --database=aurto | cut -d" " -f1)
     if [ ${#git_outdated[@]} -gt 0 ]; then
       sudo -u "$user" aurto remove "${git_outdated[@]}"
       sudo -u "$user" aurto add "${git_outdated[@]}"
