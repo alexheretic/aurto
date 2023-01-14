@@ -5,3 +5,5 @@ Wants=network-online.target
 
 [Service]
 ExecStart=/usr/lib/aurto/update-aurto
+CPUWeight=1
+IOWeight=1
