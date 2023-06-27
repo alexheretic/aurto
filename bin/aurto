@@ -108,7 +108,7 @@ echo_status() {
 }
 
 if [ "$command" == "add" ] && [ -n "$arg1" ]; then
-  packages_and_deps="$(aur depends "${@:2}")"
+  packages_and_deps="$(aur depends --pkgname "${@:2}")"
   # shellcheck disable=SC2086
   check_new_package_trust $packages_and_deps
 
