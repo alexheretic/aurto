@@ -2,11 +2,7 @@ name: Create and Publish a Docker image
 
 on:
   push:
-    branches: ['main']
-  
-  # Auto trigger on 1st day of every month at 00:00
-  schedule:
-    - cron: "0 0 1 * *"
+    branches: ['master']
 
 env:
   REGISTRY: ghcr.io
