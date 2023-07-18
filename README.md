@@ -37,6 +37,35 @@ Recommended: Add **aurto** to the 'aurto' repo to provide self updates.
 aurto add aurto
 ```
 
+# Install with docker
+After installing docker on your machine, run this command to create the container:
+```sh
+docker run -d --name aurto-docker \
+  --privileged --cap-add SYS_ADMIN --security-opt seccomp=unconfined \
+  --cgroup-parent=docker.slice --cgroupns private \
+  --tmpfs /tmp --tmpfs /run --tmpfs /run/lock \
+  -v aurto_db:/var/cache/pacman/aurto \
+  -v aurto_config:/etc/aurto \
+  -e TZ=Europe/Madrid \   # Change timezone to be the same as your machine
+  ghcr.io/alexheretic/aurto:main
+```
+
+Then running the commands like a normal installation, first initialise the 'aurto' repo & systemd timers.
+```sh
+docker exec -it --user aurto aurto-docker aurto init
+```
+
+Recommended: Add **aurto** to the 'aurto' repo to provide self updates.
+```sh
+docker exec -it --user aurto aurto-docker aurto add aurto
+```
+
+Also recommended: Add an alias to .bashrc so you only have to write aurto instead of the full docker command.
+
+```sh
+alias aurto="docker exec -it --user aurto aurto-docker aurto"
+```
+
 # Usage
 You add aur packages to your local 'aurto' repo. This is different to installing them.
 ```sh
