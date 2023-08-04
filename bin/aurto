@@ -118,12 +118,16 @@ if [ "$command" == "add" ] && [ -n "$arg1" ]; then
   trap 'rm -f "$aurto_add_temp"' EXIT
 
   aurto_sync
-  echo "aurto: Running: $(dim aur sync --no-view --no-confirm "${chroot_arg:---no-ver}" \
-    --database=aurto --makepkg-conf=/etc/aurto/makepkg-chroot.conf \
-    --pacman-conf=/etc/aurto/pacman-chroot.conf) -k0 $(cyan "${*:2}")" >&2
-  AUR_SYNC_USE_NINJA=${AUR_SYNC_USE_NINJA:-1} aur sync --no-view --no-confirm "${chroot_arg:---no-ver}" \
-    --database=aurto --makepkg-conf=/etc/aurto/makepkg-chroot.conf \
-    --pacman-conf=/etc/aurto/pacman-chroot.conf -k0 "${@:2}"
+
+  sync_args=(--no-view --no-confirm --database=aurto -k0)
+  if [ -n "$chroot_arg" ]; then
+    sync_args+=("$chroot_arg" --makepkg-conf=/etc/aurto/makepkg-chroot.conf --pacman-conf=/etc/aurto/pacman-chroot.conf)
+  else
+    sync_args+=(--no-ver)
+  fi
+  echo "aurto: Running: $(dim aur sync "${sync_args[*]}") $(cyan "${*:2}")" >&2
+  AUR_SYNC_USE_NINJA=${AUR_SYNC_USE_NINJA:-1} aur sync "${sync_args[@]}" "${@:2}"
+  
   aurto_sync
   echo -e "aurto: To install run: $(green pacman -Syu) $(cyan "${*:2}")" >&2
 
