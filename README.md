@@ -37,35 +37,6 @@ Recommended: Add **aurto** to the 'aurto' repo to provide self updates.
 aurto add aurto
 ```
 
-# Install with docker
-After installing docker on your machine, run this command to create the container:
-```sh
-docker run -d --name aurto-docker \
-  --privileged --cap-add SYS_ADMIN --security-opt seccomp=unconfined \
-  --cgroup-parent=docker.slice --cgroupns private \
-  --tmpfs /tmp --tmpfs /run --tmpfs /run/lock \
-  -v aurto_db:/var/cache/pacman/aurto \
-  -v aurto_config:/etc/aurto \
-  -e TZ=Europe/Madrid \   # Change timezone to be the same as your machine
-  ghcr.io/alexheretic/aurto:main
-```
-
-Then running the commands like a normal installation, first initialise the 'aurto' repo & systemd timers.
-```sh
-docker exec -it --user aurto aurto-docker aurto init
-```
-
-Recommended: Add **aurto** to the 'aurto' repo to provide self updates.
-```sh
-docker exec -it --user aurto aurto-docker aurto add aurto
-```
-
-Also recommended: Add an alias to .bashrc so you only have to write aurto instead of the full docker command.
-
-```sh
-alias aurto="docker exec -it --user aurto aurto-docker aurto"
-```
-
 # Usage
 You add aur packages to your local 'aurto' repo. This is different to installing them.
 ```sh
@@ -118,6 +89,11 @@ Remove `/etc/aurto/trusted-users` to trust everyone.
 # Config
 **aurto** builds packages in a chroot using `/etc/aurto/makepkg-chroot.conf` &  `/etc/aurto/pacman-chroot.conf`.
 These can be customized in the same way as the main _makepkg.conf, pacman.conf_, for example to change compression. 
+
+# Running on docker
+**aurto** can also be ran on docker to allow for installation on non Arch distros for hosting a aur repo, etc.
+
+You can find the documentation on how to install it [here](./dockerREADME.md).
 
 # Limitations & Security
 **aurto** automatically builds and regularly re-builds updated remote code from the aur.
