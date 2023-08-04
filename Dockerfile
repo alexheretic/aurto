@@ -1,7 +1,27 @@
+FROM archlinux:base-devel AS build
+
+# Setup sudo user & install dependencies
+RUN pacman -Sy --noconfirm git pacutils perl-json-xs devtools pacman-contrib ninja cargo && \
+    echo '%wheel ALL=(ALL:ALL) NOPASSWD: ALL' >> /etc/sudoers && \
+    useradd --uid 1000 --shell /bin/bash --groups wheel --create-home build
+
+USER build
+
+WORKDIR /home/build
+
+# Build aurutils & aurto
+RUN curl -L https://aur.archlinux.org/cgit/aur.git/snapshot/aurutils.tar.gz | tar xz && \
+    cd aurutils && \
+    gpg --recv-keys DBE7D3DD8C81D58D0A13D0E76BC26A17B9B7018A && \
+    makepkg -i --noconfirm && \
+    cd .. && \
+    curl -L https://aur.archlinux.org/cgit/aur.git/snapshot/aurto.tar.gz | tar xz && \
+    cd aurto && \
+    makepkg -i --noconfirm
+
 FROM archlinux:latest
 
 ENV USER_ID="1002" \
-    TZ="Europe/Madrid" \
     USER=aurto
 
 WORKDIR /
@@ -16,43 +36,30 @@ RUN rm -f /lib/systemd/system/multi-user.target.wants/* \
   /lib/systemd/system/systemd-update-utmp*
 
 # Install dependencies and setup sudo user
-RUN pacman -Syu --noconfirm base-devel sudo && \
+RUN pacman -Syu --needed --noconfirm base-devel sudo pacman-contrib && \
     echo '%wheel ALL=(ALL:ALL) NOPASSWD: ALL' >> /etc/sudoers && \
     useradd --uid ${USER_ID} --shell /bin/bash --groups wheel --create-home aurto
 
 WORKDIR /tmp
 
-RUN mkdir gosu; \
-    cd gosu; \
-    curl -L https://github.com/tianon/gosu/releases/latest/download/gosu-amd64 > gosu && \
-    curl -L https://github.com/tianon/gosu/releases/latest/download/gosu-amd64.asc > gosu.asc && \
-    gpg --batch --keyserver hkps://keys.openpgp.org --recv-keys B42F6819007F00F88E364FD4036A9C25BF357DD4 && \
-    gpg --batch --verify gosu.asc gosu && \
-    mv gosu /usr/local/bin/gosu && \
-    chmod +x /usr/local/bin/gosu && \
-    cd .. && \
+# Copy aurutils & aurto from build stage
+COPY --from=build /home/build/aurutils/aurutils-*.pkg.tar.zst /tmp/
+COPY --from=build /home/build/aurto/aurto-*.pkg.tar.zst /tmp/
 
-    curl -L https://aur.archlinux.org/cgit/aur.git/snapshot/aurutils.tar.gz | tar xz && \
-    chown -R aurto aurutils && \
-    cd aurutils && \
-    gpg --recv-keys DBE7D3DD8C81D58D0A13D0E76BC26A17B9B7018A && \
-    gosu aurto makepkg -srci --noconfirm && \
-    cd .. && \
-
-    # Install aurto
-    curl -L https://aur.archlinux.org/cgit/aur.git/snapshot/aurto.tar.gz | tar xz && \
-    chown -R aurto aurto && \
-    cd aurto && \
-    sed -i -e 's/systemctl enable --now/systemctl enable/g' aurto.install && \
-    gosu aurto makepkg -srci --noconfirm && \
+# Install aurto & aurutils
+RUN pacman -U --noconfirm /tmp/aurutils-*.pkg.tar.zst && \
+    pacman -U --noconfirm /tmp/aurto-*.pkg.tar.zst && \
+    
+    # Disable chroot for aurto
+    touch /usr/lib/aurto/conf-disable-chroot && \
 
     # Cleanup
     rm -r /tmp/* && \
-    pacman -Sy && \
-    pacman -Rs base-devel --noconfirm && \
+    paccache -rk0 && \
 
-    # Set timezone
-    ln -snf /usr/share/zoneinfo/${TZ} /etc/localtime && echo ${TZ} > /etc/timezone
+    # Setup pacman hook
+    mkdir -p /etc/pacman.d/hooks/ && \
+    echo -e "[Trigger]\nType = Package\nOperation = Remove\nOperation = Install\nOperation = Upgrade\nTarget = *\n\n[Action]\nDescription = Removing unnecessary cached files (keeping the latest one)...\nWhen = PostTransaction\nExec = /usr/bin/paccache -rk0" > /etc/pacman.d/hooks/pacman-cache-cleanup.hook
 
 WORKDIR /home/aurto
 
