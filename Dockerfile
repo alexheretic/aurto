@@ -1,7 +1,7 @@
 FROM archlinux:base-devel AS build
 
 # Setup sudo user & install dependencies
-RUN pacman -Sy --noconfirm git pacutils perl-json-xs devtools pacman-contrib ninja cargo && \
+RUN pacman -Syu --noconfirm git pacutils perl-json-xs devtools pacman-contrib ninja cargo && \
     echo '%wheel ALL=(ALL:ALL) NOPASSWD: ALL' >> /etc/sudoers && \
     useradd --uid 1000 --shell /bin/bash --groups wheel --create-home build
 
