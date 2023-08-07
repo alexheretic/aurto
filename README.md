@@ -90,6 +90,11 @@ Remove `/etc/aurto/trusted-users` to trust everyone.
 **aurto** builds packages in a chroot using `/etc/aurto/makepkg-chroot.conf` &  `/etc/aurto/pacman-chroot.conf`.
 These can be customized in the same way as the main _makepkg.conf, pacman.conf_, for example to change compression. 
 
+# Running on docker
+**aurto** can also be ran on docker to allow for installation on non Arch distros for hosting a aur repo, etc.
+
+You can find the documentation on how to install it [here](./dockerREADME.md).
+
 # Limitations & Security
 **aurto** automatically builds and regularly re-builds updated remote code from the aur.
 Code is _built_ in a clean chroot, but presumably will eventually be installed to your system.
