@@ -17,7 +17,7 @@ _aurto() {
     && command -v aur >/dev/null 2>&1
   then
     local search
-    search=$(aur pkglist -P "^$cur")
+    search=$(aur pkglist -P "^$cur" 2>/dev/null)
     mapfile -t COMPREPLY < <(compgen -W "$search" -- "$cur")
     return 0
   fi
