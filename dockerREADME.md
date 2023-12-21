@@ -8,7 +8,7 @@ docker run -d --name aurto-docker \
   --tmpfs /tmp --tmpfs /run --tmpfs /run/lock \
   -v aurto_db:/var/cache/pacman/aurto \
   -v aurto_config:/etc/aurto \
-  ghcr.io/alexheretic/aurto:master
+  ghcr.io/alexheretic/aurto:main
 ```
 
 > Make sure to replace **aurto_db** and **aurto_config** with an actual path if you don't want it to store the pacman repo and config files in a docker volume
