@@ -5,7 +5,6 @@ all:
 	@rm -rf target
 
 	@cd trust-check && CARGO_INCREMENTAL=0 cargo build --release
-	@strip $(CARGO_TARGET_DIR)/release/trust-check
 
 	@install -D conf/aurto.pacman.conf target/etc/pacman.d/aurto
 	@install -Dm440 conf/50_aurto_passwordless -t target/etc/sudoers.d

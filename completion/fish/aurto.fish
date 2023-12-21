@@ -3,7 +3,7 @@
 function __aurto_complete_add
   set -l search (commandline -ct)
   if [ (string length $search) -gt 0 ]
-    aur pkglist -P "^$search"
+    aur pkglist -P "^$search" 2>/dev/null
   end
 end
 

@@ -43,7 +43,7 @@ _aurto_available_packages ()
 _aurto_add ()
 {
     local pref=$words[$CURRENT]
-    _aur_packages=($(aur pkglist -P "^$pref"))
+    _aur_packages=($(aur pkglist -P "^$pref" 2>/dev/null))
     compadd "$@" -a -- _aur_packages
 }
 
