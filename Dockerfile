@@ -1,7 +1,7 @@
 FROM archlinux:base-devel AS build
 
-# Setup sudo user & install dependencies
-RUN pacman -Syu --noconfirm git pacutils perl-json-xs devtools pacman-contrib ninja cargo && \
+# Update & setup sudo user
+RUN pacman -Syu --noconfirm && \
     echo '%wheel ALL=(ALL:ALL) NOPASSWD: ALL' >> /etc/sudoers && \
     useradd --uid 1000 --shell /bin/bash --groups wheel --create-home build
 
@@ -13,11 +13,11 @@ WORKDIR /home/build
 RUN curl -L https://aur.archlinux.org/cgit/aur.git/snapshot/aurutils.tar.gz | tar xz && \
     cd aurutils && \
     gpg --recv-keys DBE7D3DD8C81D58D0A13D0E76BC26A17B9B7018A && \
-    makepkg -i --noconfirm && \
+    makepkg -si --noconfirm && \
     cd .. && \
     curl -L https://aur.archlinux.org/cgit/aur.git/snapshot/aurto.tar.gz | tar xz && \
     cd aurto && \
-    makepkg -i --noconfirm
+    makepkg -si --noconfirm
 
 FROM archlinux:latest
 
@@ -49,14 +49,11 @@ COPY --from=build /home/build/aurto/aurto-*.pkg.tar.zst /tmp/
 # Install aurto & aurutils
 RUN pacman -U --noconfirm /tmp/aurutils-*.pkg.tar.zst && \
     pacman -U --noconfirm /tmp/aurto-*.pkg.tar.zst && \
-    
     # Disable chroot for aurto
     touch /usr/lib/aurto/conf-disable-chroot && \
-
     # Cleanup
     rm -r /tmp/* && \
     paccache -rk0 && \
-
     # Setup pacman hook
     mkdir -p /etc/pacman.d/hooks/ && \
     echo -e "[Trigger]\nType = Package\nOperation = Remove\nOperation = Install\nOperation = Upgrade\nTarget = *\n\n[Action]\nDescription = Removing unnecessary cached files (keeping the latest one)...\nWhen = PostTransaction\nExec = /usr/bin/paccache -rk0" > /etc/pacman.d/hooks/pacman-cache-cleanup.hook
