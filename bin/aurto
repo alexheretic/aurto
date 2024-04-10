@@ -12,7 +12,7 @@ if [[ $EUID -eq 0 ]]; then
     user=$(cat /usr/lib/aurto/user)
     exec sudo -u "$user" "$0" "$@"
   else
-    echo "aurto not intialised. Run $(green aurto init) as a non-root user"
+    echo "aurto not initialised. Run $(green aurto init) as a non-root user"
     exit 1
   fi
 fi
@@ -23,7 +23,7 @@ lib_dir="$bin_dir/../lib/aurto"
 source "$lib_dir/shared-functions"
 
 if [[ $command != "init" ]] && ! initialised; then
-  echo "aurto not intialised. Run $(green aurto init)"
+  echo "aurto not initialised. Run $(green aurto init)"
   exit 1
 fi
 

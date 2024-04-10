@@ -26,7 +26,8 @@ init() {
   chmod 700 /usr/lib/aurto/user
 
   install -d /var/cache/pacman/aurto -o "$user"
-  sudo -u "$user" repo-add /var/cache/pacman/aurto/aurto.db.tar 2>/dev/null
+  sudo -u "$user" tar acf /var/cache/pacman/aurto/aurto.db.tar.zst -T /dev/null
+  sudo -u "$user" ln -rsf /var/cache/pacman/aurto/aurto.db{.tar.zst,}
 
   if ! test -f /etc/aurto/trusted-users; then
     echo 'aurto: Adding default trusted users -> /etc/aurto/trusted-users' >&2
