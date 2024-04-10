@@ -133,17 +133,19 @@ if [ "$command" == "add" ] && [ -n "$arg1" ]; then
 
 elif [ "$command" == "addpkg" ] && [ -n "$arg1" ]; then
   check_new_package_trust "${@:2}"
-  echo "aurto: Running: $(dim repo-add /var/cache/pacman/aurto/aurto.db) $(cyan "${*:2}")" >&2
-  repo-add /var/cache/pacman/aurto/aurto.db "${@:2}"
+  db_tar_path=$(readlink -f /var/cache/pacman/aurto/aurto.db)
+  echo "aurto: Running: $(dim repo-add "$db_tar_path") $(cyan "${*:2}")" >&2
+  repo-add "$db_tar_path" "${@:2}"
   for pkg in "${@:2}"; do
     cp "$pkg" /var/cache/pacman/aurto/
   done
   aurto_sync
 
 elif [ "$command" == "remove" ] && [ -n "$arg1" ]; then
+  db_tar_path=$(readlink -f /var/cache/pacman/aurto/aurto.db)
   removed=""
   for pkg in "${@:2}"; do
-    if remove_out=$(repo-remove /var/cache/pacman/aurto/aurto.db "$pkg" 2>&1); then
+    if remove_out=$(repo-remove "$db_tar_path" "$pkg" 2>&1); then
       if [[ $remove_out = *"ERROR"* ]]; then
         # may no longer be necessary as repo-remove seems to exit non-zero in this case
         echo "aurto: $(cyan "$pkg") $(red not found)" >&2
