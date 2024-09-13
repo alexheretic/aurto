@@ -7,12 +7,10 @@
 //!
 //! If package is not found in the AUR will output PACKAGE_NAME::not-in-aur
 use std::{
-    alloc::System, borrow::Cow, collections::HashSet, env, error::Error, ffi::OsStr, fs, io::Read,
-    path::Path, str,
+    borrow::Cow, collections::HashSet, env, error::Error, ffi::OsStr, fs, path::Path, str,
+    time::Duration,
 };
-
-#[global_allocator]
-static GLOBAL: System = System;
+use ureq::serde_json::Value as Json;
 
 type Res<T> = Result<T, Box<dyn Error>>;
 
@@ -95,52 +93,36 @@ fn package_maintainers<T: AsRef<str>>(
     const AURWEB_RPC: &str = "https://aur.archlinux.org/rpc";
 
     let payload = {
-        let mut payload = String::from("v=5&type=info");
+        let mut payload = Vec::new();
         for pkg in packages
             .iter()
             .flat_map(|p| p.as_ref().split('\n'))
             .map(str::trim)
             .filter(|p| !p.is_empty())
         {
-            payload = payload + "&arg[]=" + &uri_encode_pkg(valid_arch_package_name(pkg)?);
+            payload.extend(b"&arg[]=");
+            payload.extend(uri_encode_pkg(valid_arch_package_name(pkg)?).as_bytes());
         }
         payload
     };
 
-    let mut buf = Vec::new();
-    {
-        let mut handle = curl::easy::Easy::new();
-        handle.url(AURWEB_RPC)?;
-        handle.post(true)?;
-        let mut payload_bytes = payload.as_bytes();
-        let mut transfer = handle.transfer();
-        transfer.read_function(|into| Ok(payload_bytes.read(into).unwrap()))?;
-        transfer.write_function(|data| {
-            buf.extend_from_slice(data);
-            Ok(data.len())
-        })?;
-        transfer.perform()?;
+    let mut json: Json = ureq::post("https://aur.archlinux.org/rpc/v5/info")
+        .set("content-type", "application/x-www-form-urlencoded")
+        .timeout(Duration::from_secs(12))
+        .send_bytes(&payload)?
+        .into_json()?;
+
+    if let Json::String(err) = &json["error"] {
+        return Err(format!("{AURWEB_RPC} - error: {err}").into());
     }
-    let response = str::from_utf8(&buf)?;
-    let mut json = match json::parse(response) {
-        Ok(json) => json,
-        Err(_) if response.contains("Service Unavailable") => {
-            return Err(format!("{AURWEB_RPC} - Service Unavailable").into());
-        }
-        Err(err) => {
-            let mut response_head = response;
-            if let Some((i, _)) = response.char_indices().nth(400) {
-                response_head = &response_head[..i];
-            }
-            return Err(
-                format!("Invalid response from {AURWEB_RPC}: {err} `{response_head}...`").into(),
-            );
-        }
+
+    let Json::Array(results) = json["results"].take() else {
+        return Err(format!("{AURWEB_RPC} - no results: {json:?}").into());
     };
 
     let not_in_aur: Vec<_> = {
-        let in_aur: HashSet<_> = json["results"]
-            .members()
+        let in_aur: HashSet<_> = results
+            .iter()
             .filter_map(|info| info["Name"].as_str().map(str::to_lowercase))
             .collect();
 
@@ -152,14 +134,13 @@ fn package_maintainers<T: AsRef<str>>(
     };
 
     let mut maintained_pkgs = vec![];
-    for info in json["results"].members_mut() {
-        let name = info["Name"].take_string();
-        let maintainer = info["Maintainer"].take_string();
-        if let (Some(name), Some(maintainer)) = (name, maintainer) {
+    for mut info in results {
+        if let (Json::String(name), Json::String(maintainer)) =
+            (info["Name"].take(), info["Maintainer"].take())
+        {
             maintained_pkgs.push(MaintainedPackage { name, maintainer });
         }
     }
-
     Ok((maintained_pkgs, not_in_aur))
 }
 
