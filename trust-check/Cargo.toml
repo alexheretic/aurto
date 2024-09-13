@@ -1,13 +1,12 @@
 [package]
 name = "trust-check"
-version = "0.1.0"
+version = "0.0.0" # not published
 authors = ["Alex Butler <alexheretic@gmail.com>"]
 edition = "2021"
 publish = false
 
 [dependencies]
-curl = "0.4"
-json = "0.12"
+ureq = { version = "2.10.1", features = ["json"] }
 
 [profile.release]
 lto = true
