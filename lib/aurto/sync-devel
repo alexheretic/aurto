@@ -7,7 +7,7 @@ readonly AURDEST=${AURDEST:-$XDG_CACHE_HOME/aurutils/sync}
 readonly AURVCS=${AURVCS:-.*-(cvs|svn|git|hg|bzr|darcs)$}
 
 build_args=(--syncdeps --rmdeps --noconfirm --database=aurto)
-if [ "$1" = "--chroot" ]; then
+if [ "${1:---chroot}" = "--chroot" ]; then
     build_args+=(--chroot 
                  --makepkg-conf=/etc/aurto/makepkg-chroot.conf
                  --pacman-conf=/etc/aurto/pacman-chroot.conf)
