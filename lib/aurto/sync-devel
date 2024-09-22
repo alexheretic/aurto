@@ -51,8 +51,6 @@ done <"$tmp"/fetch_results
 # output is then compared with the contents of the local repository.
 aur vercmp -p <(aur srcver "${targets[@]}") <"$tmp"/db | awk '{print $1}' >"$tmp"/ood
 
-# Build the packages. Arguments are shared between aur-repo and
-# aur-build to specify the local repository.
 if [[ -s $tmp/ood ]]; then
     aur build -a "$tmp"/ood "${build_args[@]}"
 else
