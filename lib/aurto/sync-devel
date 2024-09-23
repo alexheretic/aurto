@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+## From https://github.com/aurutils/aurutils/blob/master/examples/sync-devel
+set -euo pipefail
+
+readonly XDG_CACHE_HOME=${XDG_CACHE_HOME:-$HOME/.cache}
+readonly AURDEST=${AURDEST:-$XDG_CACHE_HOME/aurutils/sync}
+readonly AURVCS=${AURVCS:-.*-(cvs|svn|git|hg|bzr|darcs)$}
+
+build_args=(--syncdeps --rmdeps --noconfirm --database=aurto)
+if [ "${1:---chroot}" = "--chroot" ]; then
+    build_args+=(--chroot 
+                 --makepkg-conf=/etc/aurto/makepkg-chroot.conf
+                 --pacman-conf=/etc/aurto/pacman-chroot.conf)
+fi
+
+filter_vcs() {
+    awk -v "mask=$AURVCS" '$1 ~ mask {print $1}' "$@"
+}
+
+tmp=$(mktemp -d "/tmp/aurto-sync-devel.XXXXXXXX")
+trap 'rm -rf "$tmp"' EXIT
+
+# Retrieve a list of the local repository contents. The repository
+# can be specified with the usual aur-repo arguments.
+aur repo --list --database=aurto | tee "$tmp"/db | filter_vcs - >"$tmp"/vcs
+
+# Only AUR repositories can be cloned anew, as the source of non-AUR packages
+# is unknown beforehand. Their existence is checked with `git-ls-remote` (`-e`)
+# Running makepkg locally on a PKGBUILD with pkgver() results in local changes,
+# so these are removed with `--discard`. New upstream commits are then merged
+# with `git-merge` or `git-rebase` (`--sync=auto`). The final PKGBUILD is shown
+# in `aur-view` later on.
+mkdir -p "$AURDEST"
+cd "$AURDEST"
+aur fetch -e --discard --sync=auto --results="$tmp"/fetch_results - <"$tmp"/vcs
+
+# Make sure empty repositories are not considered for inspection.
+targets=()
+# shellcheck disable=SC2034
+while IFS=: read -r mode rev_old rev path; do
+    path=${path#file://} name=${path##*/}
+
+    case $mode in
+	clone|merge|fetch|rebase|reset)
+	    [[ $rev != "0" ]] && targets+=("$name") ;;
+    esac
+done <"$tmp"/fetch_results
+
+# Update `epoch:pkgver-pkgrel` for each target with `aur-srcver`.
+# This runs `makepkg`, cloning upstream to the latest revision. The
+# output is then compared with the contents of the local repository.
+aur vercmp -p <(aur srcver "${targets[@]}") <"$tmp"/db | awk '{print $1}' >"$tmp"/ood
+
+if [[ -s $tmp/ood ]]; then
+    aur build -a "$tmp"/ood "${build_args[@]}"
+else
+    echo 'VCS packages up to date ✓' >&2
+fi
