@@ -46,10 +46,31 @@ while IFS=: read -r mode rev_old rev path; do
     esac
 done <"$tmp"/fetch_results
 
+# Probe `aur srcver` with and without the `--no-prepare` option.
+# - A `prepare()` function can fail without its `makedepends`.
+#   (These are not available.)
+# - Typically `prepare()` is not required to run `pkgver()`.
+#
+# Usage: srcver <package ...>
+srcver() {
+    local srcver=()
+    for pkg in "${@}"; do
+        local ver=""
+        if ! ver=$(
+            set +e
+            aur srcver --no-prepare "${pkg}" 2>/dev/null
+        ); then
+            ver=$(aur srcver "${pkg}")
+        fi
+        srcver+=("${ver}")
+    done
+    echo "${srcver[@]}"
+}
+
 # Update `epoch:pkgver-pkgrel` for each target with `aur-srcver`.
 # This runs `makepkg`, cloning upstream to the latest revision. The
 # output is then compared with the contents of the local repository.
-aur vercmp -p <(aur srcver "${targets[@]}") <"$tmp"/db | awk '{print $1}' >"$tmp"/ood
+aur vercmp -p <(srcver "${targets[@]}") <"$tmp"/db | awk '{print $1}' >"$tmp"/ood
 
 if [[ -s $tmp/ood ]]; then
     aur build -a "$tmp"/ood "${build_args[@]}"
