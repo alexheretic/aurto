@@ -6,11 +6,11 @@
 //! for each mistrusted package.
 //!
 //! If package is not found in the AUR will output PACKAGE_NAME::not-in-aur
+use serde_json::Value as Json;
 use std::{
     borrow::Cow, collections::HashSet, env, error::Error, ffi::OsStr, fs, path::Path, str,
     time::Duration,
 };
-use ureq::serde_json::Value as Json;
 
 type Res<T> = Result<T, Box<dyn Error>>;
 
@@ -106,11 +106,16 @@ fn package_maintainers<T: AsRef<str>>(
         payload
     };
 
-    let mut json: Json = ureq::post("https://aur.archlinux.org/rpc/v5/info")
-        .set("content-type", "application/x-www-form-urlencoded")
-        .timeout(Duration::from_secs(12))
-        .send_bytes(&payload)?
-        .into_json()?;
+    let mut json: Json = ureq::Agent::from(
+        ureq::Agent::config_builder()
+            .timeout_global(Some(Duration::from_secs(12)))
+            .build(),
+    )
+    .post("https://aur.archlinux.org/rpc/v5/info")
+    .content_type("application/x-www-form-urlencoded")
+    .send(&payload)?
+    .body_mut()
+    .read_json()?;
 
     if let Json::String(err) = &json["error"] {
         return Err(format!("{AURWEB_RPC} - error: {err}").into());
