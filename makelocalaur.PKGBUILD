@@ -15,7 +15,8 @@ depends=('aurutils'
          'less'
          'sudo'
          'zstd'
-         'ninja')
+         'ninja'
+         'expect')
 optdepends=()
 makedepends=('cargo')
 install="aurto.install"

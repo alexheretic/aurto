@@ -2,7 +2,7 @@
 name = "trust-check"
 version = "0.0.0" # not published
 authors = ["Alex Butler <alexheretic@gmail.com>"]
-edition = "2021"
+edition = "2024"
 publish = false
 
 [dependencies]
