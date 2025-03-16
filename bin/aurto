@@ -2,7 +2,7 @@
 ## aurto commands, see bottom help output
 
 set -Eeuo pipefail
-version="0.14.2"
+version="0.14.3"
 command=${1:-}
 arg1=${2:-}
 
