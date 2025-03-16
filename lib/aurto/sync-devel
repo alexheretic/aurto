@@ -53,18 +53,13 @@ done <"$tmp"/fetch_results
 #
 # Usage: srcver <package ...>
 srcver() {
-    local srcver=()
+    local ver
     for pkg in "${@}"; do
-        local ver=""
-        if ! ver=$(
-            set +e
-            aur srcver --no-prepare "${pkg}" 2>/dev/null
-        ); then
-            ver=$(aur srcver "${pkg}")
+        if ! ver=$(aur srcver --no-prepare "$pkg" 2>/dev/null); then
+            ver=$(aur srcver "$pkg")
         fi
-        srcver+=("${ver}")
+        echo "$ver"
     done
-    echo "${srcver[@]}"
 }
 
 # Update `epoch:pkgver-pkgrel` for each target with `aur-srcver`.
