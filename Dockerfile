@@ -58,6 +58,30 @@ RUN pacman -U --noconfirm /tmp/aurutils-*.pkg.tar.zst && \
     mkdir -p /etc/pacman.d/hooks/ && \
     echo -e "[Trigger]\nType = Package\nOperation = Remove\nOperation = Install\nOperation = Upgrade\nTarget = *\n\n[Action]\nDescription = Removing unnecessary cached files (keeping the latest one)...\nWhen = PostTransaction\nExec = /usr/bin/paccache -rk0" > /etc/pacman.d/hooks/pacman-cache-cleanup.hook
 
+#init aurto
+RUN sed -i 's/--now//g' /usr/lib/aurto/install
+RUN echo "Include = /etc/pacman.d/aurto" >> /etc/pacman.conf
+RUN ln -sf /usr/share/zoneinfo/UTC /etc/localtime
+USER aurto
+RUN aurto init
+
+USER root
+
+RUN sudo tee /etc/systemd/system/ensure-aurto.service > /dev/null <<'EOF'
+[Unit]
+Description=Ensure aurto pacman DB
+After=default.target
+
+[Service]
+Type=oneshot
+ExecStart=/bin/bash -c 'if [ ! -f /var/cache/pacman/aurto/aurto.db.tar.zst ]; then sudo install -d /var/cache/pacman/aurto -o "aurto" && sudo -u aurto tar acf /var/cache/pacman/aurto/aurto.db.tar.zst -T /dev/null && sudo -u aurto ln -rsf /var/cache/pacman/aurto/aurto.db{.tar.zst,}; fi'
+
+[Install]
+WantedBy=default.target
+EOF
+
+RUN systemctl enable ensure-aurto
+
 WORKDIR /home/aurto
 
 VOLUME ["/tmp", "/run", "/run/lock", "/etc/aurto", "/var/cache/pacman/aurto"]
