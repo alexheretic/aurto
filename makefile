@@ -18,7 +18,7 @@ all:
 	@install -Dm644 timer/* -t target$(PREFIX)/lib/systemd/system
 
 	@install -Dm644 completion/bash/aurto target$(PREFIX)/share/bash-completion/completions/aurto
-	@install -Dm644 completion/fish/aurto.fish target$(PREFIX)/share/fish/completions/aurto.fish
+	@install -Dm644 completion/fish/aurto.fish target$(PREFIX)/share/fish/vendor_completions.d/aurto.fish
 	@install -Dm644 completion/zsh/_aurto target$(PREFIX)/share/zsh/site-functions/_aurto
 
 	@if command -v tree >/dev/null 2>&1; then tree target; fi
