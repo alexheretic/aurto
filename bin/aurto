@@ -2,7 +2,7 @@
 ## aurto commands, see bottom help output
 
 set -Eeuo pipefail
-version="0.14.3"
+version="0.14.4"
 command=${1:-}
 arg1=${2:-}
 
@@ -127,7 +127,7 @@ if [ "$command" == "add" ] && [ -n "$arg1" ]; then
   fi
   echo "aurto: Running: $(dim aur sync "${sync_args[*]}") $(cyan "${*:2}")" >&2
   AUR_SYNC_USE_NINJA=${AUR_SYNC_USE_NINJA:-1} aur sync "${sync_args[@]}" "${@:2}"
-  
+
   aurto_sync
   echo -e "aurto: To install run: $(green pacman -Syu) $(cyan "${*:2}")" >&2
 
