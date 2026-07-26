@@ -125,17 +125,12 @@ fn package_maintainers<T: AsRef<str>>(
         return Err(format!("{AURWEB_RPC} - no results: {json:?}").into());
     };
 
-    let not_in_aur: Vec<_> = {
+    let not_in_aur = {
         let in_aur: HashSet<_> = results
             .iter()
             .filter_map(|info| info["Name"].as_str().map(str::to_lowercase))
             .collect();
-
-        packages
-            .iter()
-            .map(|p| p.as_ref().to_lowercase())
-            .filter(|pkg| !in_aur.contains(pkg))
-            .collect()
+        not_in_aur(packages, &in_aur)
     };
 
     let mut maintained_pkgs = vec![];
@@ -147,6 +142,21 @@ fn package_maintainers<T: AsRef<str>>(
         }
     }
     Ok((maintained_pkgs, not_in_aur))
+}
+
+/// Returns a list of `packages` that not contained in `in_aur` or are not *-debug
+/// names of packages contained `in_aur`.
+fn not_in_aur<T: AsRef<str>>(packages: &[T], in_aur: &HashSet<String>) -> Vec<String> {
+    packages
+        .iter()
+        .map(|p| p.as_ref().to_lowercase())
+        .filter(|pkg| {
+            !in_aur.contains(pkg)
+                && !pkg
+                    .strip_suffix("-debug")
+                    .is_some_and(|pkg| in_aur.contains(pkg))
+        })
+        .collect()
 }
 
 fn valid_arch_package_name(name: &str) -> Result<&str, String> {
@@ -205,4 +215,14 @@ fn uri_encode_normal_pkg() {
 #[test]
 fn uri_encode_special_pkg() {
     assert_eq!(&uri_encode_pkg("libc++"), "libc%2B%2B");
+}
+
+#[test]
+fn test_not_in_aur() {
+    let packages = vec!["pkg1", "pkg1-debug", "pkg2", "pk2-debug", "pkg3-not-debug"];
+    let in_aur: HashSet<String> = vec!["pkg1".into()].into_iter().collect();
+    assert_eq!(
+        not_in_aur(&packages, &in_aur),
+        vec!["pkg2", "pk2-debug", "pkg3-not-debug"]
+    );
 }
