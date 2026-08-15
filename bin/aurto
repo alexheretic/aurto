@@ -119,7 +119,7 @@ if [ "$command" == "add" ] && [ -n "$arg1" ]; then
 
   aurto_sync
 
-  sync_args=(--no-view --no-confirm --database=aurto -k0)
+  sync_args=(--no-view --no-confirm --database=aurto -k0 -A)
   if [ -n "$chroot_arg" ]; then
     sync_args+=("$chroot_arg" --makepkg-conf=/etc/aurto/makepkg-chroot.conf --pacman-conf=/etc/aurto/pacman-chroot.conf)
   else
