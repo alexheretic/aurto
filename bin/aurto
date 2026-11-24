@@ -70,7 +70,19 @@ function check_new_package_trust {
 }
 
 echo_status() {
+  local updates
+
   echo "$(bold aurto) v$version managing $(bold "$(pacman -Sql aurto | wc -l)") aur packages"
+
+  echo
+  echo "AUR updates:"
+  if ! updates=$(aur repo --sync --database=aurto --list | aur vercmp); then
+    yellow '  Unable to check for updates'
+  elif [[ -n $updates ]]; then
+    printf '%s\n' "$updates" | sed 's/^/  /'
+  else
+    green '  None'
+  fi
 
   echo
   echo "Packages: $(dim pacman -Sl aurto)"
@@ -182,7 +194,7 @@ else
   echo "  - addpkg: add a prebuilt package to the 'aurto' repo"
   echo "      $(green aurto addpkg) $(cyan aurutils-2.3.1-1-any.pkg.tar.xz)"
   echo
-  echo "  - status: current 'aurto' repo packages, logs & info"
+  echo "  - status: current 'aurto' repo packages, available AUR updates, logs & info"
   echo "      $(green aurto status)"
   exit 1
 fi

@@ -47,7 +47,7 @@ The packages are automatically updated periodically,
 you'll see ***aurto*** updates in the same way as other repos after a `pacman -Syu`.
 
 # Useful commands
-View current packages, logs & info.
+View current packages, available AUR updates, logs & info.
 ```sh
 aurto status
 ```
